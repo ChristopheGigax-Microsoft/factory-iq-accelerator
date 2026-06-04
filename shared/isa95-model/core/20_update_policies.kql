@@ -1,0 +1,12 @@
+.create-or-alter function with (folder='ingest') fn_transform_telemetry() {
+  TelemetryLanding
+  | project Timestamp, WorkUnitId, Signal, Value
+}
+
+.alter table EquipmentTelemetry policy update @'[{
+  "IsEnabled": true,
+  "Source": "TelemetryLanding",
+  "Query": "fn_transform_telemetry()",
+  "IsTransactional": false,
+  "PropagateIngestionProperties": true
+}]'

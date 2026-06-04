@@ -1,0 +1,5 @@
+.create-merge table Enterprise (EnterpriseId:string, Name:string)
+.create-merge table Site (SiteId:string, EnterpriseId:string, Name:string)
+.create-merge table Area (AreaId:string, SiteId:string, Name:string)
+.create-merge table WorkCenter (WorkCenterId:string, AreaId:string, Name:string)
+.create-merge table WorkUnit (WorkUnitId:string, WorkCenterId:string, Name:string)

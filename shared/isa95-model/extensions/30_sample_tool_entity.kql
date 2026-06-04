@@ -1,0 +1,6 @@
+.create-merge table Tool (
+  ToolId:string,
+  WorkUnitId:string,
+  Name:string,
+  ToolType:string
+)

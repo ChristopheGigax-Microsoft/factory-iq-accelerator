@@ -1,0 +1,28 @@
+version: 1
+enterprise:
+  id: ent-demo
+  name: Demo Enterprise
+
+# Add one or more sites for this enterprise.
+sites:
+  - id: site-main
+    enterpriseId: ent-demo
+    name: Main Site
+
+# Areas belong to sites.
+areas:
+  - id: area-a
+    siteId: site-main
+    name: Area A
+
+# Work centers belong to areas.
+workCenters:
+  - id: wc-a1
+    areaId: area-a
+    name: Work Center A1
+
+# Work units belong to work centers.
+workUnits:
+  - id: wu-a1-01
+    workCenterId: wc-a1
+    name: Work Unit A1-01

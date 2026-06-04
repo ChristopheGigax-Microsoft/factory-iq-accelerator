@@ -1,0 +1,37 @@
+# Node / JS / TS
+node_modules/
+dist/
+build/
+*.log
+.env*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Terraform
+.terraform/
+*.tfstate*
+*.tfvars
+.terraform.lock.hcl
+
+# Generated deployment artifacts
+connection.json
+*.plan
+
+# Secrets and credentials
+*.pem
+*.key
+*.pfx
+secrets/
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
