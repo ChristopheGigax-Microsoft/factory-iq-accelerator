@@ -1,0 +1,24 @@
+{
+  "name": "eventstream-baseline",
+  "description": "Baseline Eventstream for factory telemetry landing.",
+  "inputs": [
+    {
+      "id": "custom-app-input",
+      "type": "CustomApp",
+      "displayName": "Custom App Input"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "eventhouse-output",
+      "type": "Eventhouse",
+      "displayName": "Eventhouse Output"
+    }
+  ],
+  "routes": [
+    {
+      "from": "custom-app-input",
+      "to": "eventhouse-output"
+    }
+  ]
+}

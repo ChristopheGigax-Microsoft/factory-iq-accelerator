@@ -1,0 +1,48 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A2540"/>
+      <stop offset="1" stop-color="#12466E"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E7CCB" stop-opacity="0.40"/>
+      <stop offset="1" stop-color="#39D2C0" stop-opacity="0.28"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="1200" height="630" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" rx="0" fill="url(#bg)"/>
+  <circle cx="1000" cy="110" r="170" fill="#3AD0C2" fill-opacity="0.10"/>
+  <circle cx="180" cy="560" r="200" fill="#79A8FF" fill-opacity="0.08"/>
+
+  <g filter="url(#shadow)">
+    <rect x="60" y="50" width="1080" height="530" rx="24" fill="url(#card)" stroke="#7EC3FF" stroke-opacity="0.28"/>
+  </g>
+
+  <text x="100" y="150" fill="#EAF6FF" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700">Factory IQ Accelerator</text>
+  <text x="100" y="200" fill="#B7DFFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="500">Fabric foundation for industrial data, deployed with your IaC engine of choice</text>
+
+  <rect x="100" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
+  <text x="130" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Terraform</text>
+
+  <rect x="350" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
+  <text x="408" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Bicep</text>
+
+  <rect x="600" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
+  <text x="656" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Pulumi</text>
+
+  <rect x="880" y="246" width="220" height="122" rx="16" fill="#123F66" stroke="#39D2C0"/>
+  <text x="912" y="296" fill="#C8FFF7" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700">shared/</text>
+  <text x="912" y="326" fill="#B2EAE5" font-family="Segoe UI, Arial, sans-serif" font-size="18">ISA-95 model + topology</text>
+
+  <path d="M320 307H350" stroke="#8FD0FF" stroke-width="4"/>
+  <path d="M570 307H600" stroke="#8FD0FF" stroke-width="4"/>
+  <path d="M820 307H880" stroke="#8FD0FF" stroke-width="4"/>
+
+  <rect x="220" y="418" width="760" height="92" rx="18" fill="#0E3252" stroke="#7EC3FF"/>
+  <text x="248" y="457" fill="#E5F5FF" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700">Output Contract:</text>
+  <text x="474" y="457" fill="#A5E8DE" font-family="Consolas, 'Courier New', monospace" font-size="25">connection.json</text>
+  <text x="248" y="487" fill="#B9DFF8" font-family="Segoe UI, Arial, sans-serif" font-size="19">Engine-blind handoff to model deployment and hierarchy seeding</text>
+</svg>

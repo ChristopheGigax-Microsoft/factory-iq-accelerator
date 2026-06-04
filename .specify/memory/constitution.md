@@ -1,50 +1,109 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Factory IQ Accelerator — Constitution
+
+<!--
+Governance document for the Factory IQ Fabric IaC Accelerator.
+This is the highest-authority artifact. Every spec, plan, and task MUST
+comply with the principles below. When Copilot/Spec-Kit generates code,
+these principles are non-negotiable acceptance gates.
+-->
+
+**Version:** 1.0.0
+**Ratified:** 2026-06-02
+**Last amended:** 2026-06-02
+**Owner:** Christophe Gigax — Solution Engineer, Microsoft France
+
+---
+
+## Purpose
+
+The Factory IQ Accelerator is a reusable, customer-deliverable Infrastructure-as-Code
+asset that provisions the Microsoft Fabric foundation for agentic manufacturing
+operations — starting with **Eventstream** and **Eventhouse**, modeled to the
+**ISA-95** standard. It is designed to *land small and expand*, and to be handed to
+a customer who can customize it — especially the data model — without forking the core.
+
+---
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Principle 1 — Engine Independence (NON-NEGOTIABLE)
+The customer chooses **exactly one** Infrastructure-as-Code technology:
+**Terraform**, **Bicep**, or **Pulumi**. The three engines are interchangeable and
+MUST NOT be mixed in a single deployment.
+- Each engine lives in its own self-contained folder under `infra/`.
+- A customer MUST be able to delete the two engines they did not choose and still
+  have a complete, working stack.
+- The three engines MUST reach **feature parity**: same resources, same inputs,
+  same outputs.
+- Engines MUST expose the same four logical modules with mirrored names:
+  `capacity`, `workspace`, `eventhouse`, `eventstream`.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### Principle 2 — Shared Model is the Single Source of Truth (NON-NEGOTIABLE)
+The ISA-95 data model, the Eventstream topology, and the plant configuration are
+**technology-agnostic** and live exactly once under `shared/`.
+- `shared/` is consumed by all engines and **owned by none**.
+- The ISA-95 schema, Eventstream definition, and plant config MUST NOT be duplicated,
+  forked, or embedded inside any engine folder.
+- Changing the data model MUST require editing only `shared/`, never an engine.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### Principle 3 — The Output Contract is Sacred (NON-NEGOTIABLE)
+Every engine, after a successful deployment, MUST emit an identical
+`connection.json` conforming to `contracts/connection-contract.md`.
+- The model-deployment step is **engine-blind**: it reads only `connection.json`.
+- No engine may require the model runner to know which technology produced it.
+- Changing the contract is a breaking change and requires a constitution amendment.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### Principle 4 — ISA-95 Conformance
+The **core** data model MUST follow the ISA-95 equipment hierarchy
+(Enterprise → Site → Area → Work Center → Work Unit) and ISA-95 operations concepts
+(equipment state, production, material, batch, quality).
+- Core schema MUST NOT deviate from ISA-95 role-based equipment naming.
+- Customer-specific entities belong in `extensions/`, never in `core/`.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### Principle 5 — Idempotency by Construction
+Every schema and topology operation MUST be safely re-runnable.
+- KQL DDL MUST use idempotent commands (`.create-merge`, `.create-or-alter`).
+- IaC MUST be declarative and convergent; re-applying a deployed environment
+  produces no unintended changes.
+- The model runner MUST tolerate partial prior runs.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Principle 6 — Customizability Without Forking
+The customer MUST be able to extend the solution without editing the core.
+- **core/** (you own & version) vs **extensions/** (customer-owned) are strictly separated.
+- An upgrade to `core/` MUST NEVER clobber customer changes in `extensions/`.
+- Plant-specific reality (sites, lines, equipment, tag mappings) is **config-driven**
+  via `plant-hierarchy.yaml` — editable without touching code.
+- `core/` is consumed as a pinned, versioned artifact.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### Principle 7 — Start Small, Expand by Parameter
+The accelerator lands with the minimum viable footprint and grows by parameter.
+- Default capacity SKU is the smallest viable (F2); scaling up is a variable change.
+- One workspace per plant; a new plant is a new parameter set, not new code.
+- v1 scope is intentionally narrow: Eventstream + Eventhouse + ISA-95 model only.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+---
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Constraints & Standards
+
+- **Languages:** HCL (Terraform), Bicep, TypeScript (Pulumi), Python (model runner), KQL (model).
+- **Authentication:** Service Principal or Managed Identity; no secrets in source control.
+- **Naming:** every resource name derives from a `plant_code` + `environment` parameter.
+- **State/secrets:** remote state and secret stores configured per engine; never committed.
+- **Documentation:** every engine folder ships a self-contained `README.md`.
+
+---
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution supersedes all other practices. Specs and plans that conflict
+  with it are invalid until reconciled.
+- **Amendments** require: a documented rationale, a version bump, and a migration note
+  for any affected specs.
+- **Versioning** follows semantic versioning:
+  - MAJOR — removal/redefinition of a principle or the output contract.
+  - MINOR — a new principle or materially expanded guidance.
+  - PATCH — clarifications and wording.
+- **Compliance:** every `plan.md` MUST include a "Constitution Check" gate. Any
+  violation MUST be justified in a "Complexity Tracking" section or the plan is rejected.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version:** 1.0.0 | **Ratified:** 2026-06-02 | **Last amended:** 2026-06-02

@@ -1,0 +1,34 @@
+.create-merge table TelemetryLanding (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  Signal:string,
+  Value:real,
+  Payload:dynamic
+)
+
+.create-merge table EquipmentTelemetry (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  Signal:string,
+  Value:real
+)
+
+.create-merge table EquipmentState (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  State:string
+)
+
+.create-merge table ProductionEvent (
+  Timestamp:datetime,
+  WorkCenterId:string,
+  EventType:string,
+  BatchId:string
+)
+
+.create-merge table QualityEvent (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  DefectCode:string,
+  Severity:string
+)
