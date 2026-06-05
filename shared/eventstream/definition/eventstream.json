@@ -1,6 +1,7 @@
 {
   "name": "eventstream-baseline",
   "description": "Baseline Eventstream for factory telemetry landing.",
+  "compatibilityLevel": "1.0",
   "inputs": [
     {
       "id": "custom-app-input",

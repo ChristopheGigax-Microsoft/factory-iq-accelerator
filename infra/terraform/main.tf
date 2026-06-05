@@ -2,6 +2,14 @@ terraform {
   required_version = ">= 1.6.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = ">= 2.0.0"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 4.2.0"
+    }
     fabric = {
       source  = "microsoft/fabric"
       version = ">= 1.0.0"
@@ -9,13 +17,39 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  features {}
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+}
+
+provider "azapi" {
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+}
+
 locals {
   base_name = "fiq-${var.plant_code}-${var.environment}"
+}
+
+resource "azurerm_resource_group" "this" {
+  name     = var.resource_group
+  location = var.region
+}
+
+module "capacity" {
+  source            = "./modules/capacity"
+  name              = "${replace(local.base_name, "-", "")}cap"
+  location          = var.region
+  sku               = var.capacity_sku
+  resource_group_id = azurerm_resource_group.this.id
+  admin_members     = var.capacity_admin_members
 }
 
 module "workspace" {
   source      = "./modules/workspace"
   name        = "${local.base_name}-ws"
+  capacity_id = module.capacity.capacity_id
 }
 
 module "eventhouse" {

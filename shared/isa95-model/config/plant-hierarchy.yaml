@@ -1,28 +1,174 @@
 version: 1
 enterprise:
-  id: ent-demo
-  name: Demo Enterprise
+  id: ent-factory-iq
+  name: Factory IQ Enterprise
 
-# Add one or more sites for this enterprise.
 sites:
-  - id: site-main
-    enterpriseId: ent-demo
-    name: Main Site
+  - id: factory-paris
+    enterpriseId: ent-factory-iq
+    name: Usine Paris
+  - id: factory-lyon
+    enterpriseId: ent-factory-iq
+    name: Usine Lyon
+  - id: factory-strasbourg
+    enterpriseId: ent-factory-iq
+    name: Usine Strasbourg
+  - id: factory-toulouse
+    enterpriseId: ent-factory-iq
+    name: Usine Toulouse
+  - id: factory-nantes
+    enterpriseId: ent-factory-iq
+    name: Usine Nantes
 
-# Areas belong to sites.
 areas:
-  - id: area-a
-    siteId: site-main
-    name: Area A
+  - id: area-paris
+    siteId: factory-paris
+    name: Production Area Paris
+  - id: area-lyon
+    siteId: factory-lyon
+    name: Production Area Lyon
+  - id: area-strasbourg
+    siteId: factory-strasbourg
+    name: Production Area Strasbourg
+  - id: area-toulouse
+    siteId: factory-toulouse
+    name: Production Area Toulouse
+  - id: area-nantes
+    siteId: factory-nantes
+    name: Production Area Nantes
 
-# Work centers belong to areas.
 workCenters:
-  - id: wc-a1
-    areaId: area-a
-    name: Work Center A1
+  - id: line-paris-01
+    areaId: area-paris
+    name: Assemblage A
+  - id: line-paris-02
+    areaId: area-paris
+    name: Soudure B
+  - id: line-lyon-01
+    areaId: area-lyon
+    name: Production Moteurs
+  - id: line-lyon-02
+    areaId: area-lyon
+    name: Controle Qualite
+  - id: line-lyon-03
+    areaId: area-lyon
+    name: Usinage Vilebrequins
+  - id: line-strasbourg-01
+    areaId: area-strasbourg
+    name: Injection Plastique
+  - id: line-strasbourg-02
+    areaId: area-strasbourg
+    name: Assemblage Moules
+  - id: line-strasbourg-03
+    areaId: area-strasbourg
+    name: Extrusion Profiles
+  - id: line-strasbourg-04
+    areaId: area-strasbourg
+    name: Thermoformage
+  - id: line-toulouse-01
+    areaId: area-toulouse
+    name: Aeronautique
+  - id: line-toulouse-02
+    areaId: area-toulouse
+    name: Traitement de Surface
+  - id: line-nantes-01
+    areaId: area-nantes
+    name: Emboutissage
+  - id: line-nantes-02
+    areaId: area-nantes
+    name: Soudure and Assemblage
+  - id: line-nantes-03
+    areaId: area-nantes
+    name: Peinture and Finition
 
-# Work units belong to work centers.
 workUnits:
-  - id: wu-a1-01
-    workCenterId: wc-a1
-    name: Work Unit A1-01
+  - id: mach-paris-01-cnc1
+    workCenterId: line-paris-01
+    name: CNC Fraiseuse 1
+  - id: mach-paris-01-press1
+    workCenterId: line-paris-01
+    name: Presse Hydraulique 1
+  - id: mach-paris-02-weld1
+    workCenterId: line-paris-02
+    name: Robot Soudeur 1
+  - id: mach-lyon-01-tour1
+    workCenterId: line-lyon-01
+    name: Tour CNC 1
+  - id: mach-lyon-01-tour2
+    workCenterId: line-lyon-01
+    name: Tour CNC 2
+  - id: mach-lyon-01-rect1
+    workCenterId: line-lyon-01
+    name: Rectifieuse 1
+  - id: mach-lyon-02-mesure1
+    workCenterId: line-lyon-02
+    name: Machine de Mesure Tridimensionnelle 1
+  - id: mach-lyon-02-banc1
+    workCenterId: line-lyon-02
+    name: Banc de Test Moteur 1
+  - id: mach-lyon-03-centre1
+    workCenterId: line-lyon-03
+    name: Centre d Usinage 1
+  - id: mach-lyon-03-tour1
+    workCenterId: line-lyon-03
+    name: Tour Vertical 1
+  - id: mach-strasbourg-01-inject1
+    workCenterId: line-strasbourg-01
+    name: Presse a Injecter 1
+  - id: mach-strasbourg-01-extrud1
+    workCenterId: line-strasbourg-01
+    name: Extrudeuse 1
+  - id: mach-strasbourg-01-robot1
+    workCenterId: line-strasbourg-01
+    name: Robot de Manutention 1
+  - id: mach-strasbourg-02-usinage1
+    workCenterId: line-strasbourg-02
+    name: Centre d Usinage Moule 1
+  - id: mach-strasbourg-02-polish1
+    workCenterId: line-strasbourg-02
+    name: Polisseuse CN 1
+  - id: mach-strasbourg-03-extrud1
+    workCenterId: line-strasbourg-03
+    name: Extrudeuse Profiles 1
+  - id: mach-strasbourg-03-decoupe1
+    workCenterId: line-strasbourg-03
+    name: Decoupe a Chaud 1
+  - id: mach-strasbourg-04-thermo1
+    workCenterId: line-strasbourg-04
+    name: Thermoformeuse 1
+  - id: mach-strasbourg-04-palettis1
+    workCenterId: line-strasbourg-04
+    name: Robot de Palettisation 1
+  - id: mach-toulouse-01-usinage1
+    workCenterId: line-toulouse-01
+    name: Centre d Usinage 5 Axes 1
+  - id: mach-toulouse-01-perc1
+    workCenterId: line-toulouse-01
+    name: Perceuse CN 1
+  - id: mach-toulouse-02-bain1
+    workCenterId: line-toulouse-02
+    name: Bain de Traitement 1
+  - id: mach-toulouse-02-four1
+    workCenterId: line-toulouse-02
+    name: Four de Sechage 1
+  - id: mach-nantes-01-embout1
+    workCenterId: line-nantes-01
+    name: Presse d Emboutissage 1
+  - id: mach-nantes-01-laser1
+    workCenterId: line-nantes-01
+    name: Decoupe Laser 1
+  - id: mach-nantes-01-pli1
+    workCenterId: line-nantes-01
+    name: Plieuse CN 1
+  - id: mach-nantes-02-soud1
+    workCenterId: line-nantes-02
+    name: Robot Soudeur MIG 1
+  - id: mach-nantes-02-sertiss1
+    workCenterId: line-nantes-02
+    name: Presse de Sertissage 1
+  - id: mach-nantes-03-cabine1
+    workCenterId: line-nantes-03
+    name: Cabine de Peinture 1
+  - id: mach-nantes-03-four1
+    workCenterId: line-nantes-03
+    name: Four de Cuisson 1

@@ -3,10 +3,4 @@
   | project Timestamp, WorkUnitId, Signal, Value
 }
 
-.alter table EquipmentTelemetry policy update @'[{
-  "IsEnabled": true,
-  "Source": "TelemetryLanding",
-  "Query": "fn_transform_telemetry()",
-  "IsTransactional": false,
-  "PropagateIngestionProperties": true
-}]'
+.alter table EquipmentTelemetry policy update @'[{"IsEnabled": true, "Source": "TelemetryLanding", "Query": "TelemetryLanding | project Timestamp, WorkUnitId, Signal, Value", "IsTransactional": false, "PropagateIngestionProperties": true}]'

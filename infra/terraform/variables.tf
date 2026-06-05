@@ -19,6 +19,11 @@ variable "capacity_sku" {
   default     = "F2"
 }
 
+variable "capacity_admin_members" {
+  type        = list(string)
+  description = "Fabric capacity admin identities (UPN/email)"
+}
+
 variable "tenant_id" {
   type        = string
   description = "Azure tenant ID"

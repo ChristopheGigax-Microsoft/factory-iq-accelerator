@@ -16,7 +16,6 @@ venv/
 .terraform/
 *.tfstate*
 *.tfvars
-.terraform.lock.hcl
 
 # Generated deployment artifacts
 connection.json
