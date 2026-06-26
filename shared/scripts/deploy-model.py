@@ -9,11 +9,21 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import uuid
 import urllib.error
 import urllib.request
 from typing import Iterable
 
 import yaml
+
+from hierarchy_mapper import map_hierarchy_config_to_nodes
+from sql_connection import SqlConnectionValidationError, build_pyodbc_connection_string, parse_sql_target
+from sql_seed_commands import build_upsert_node_commands
+
+try:
+    import pyodbc
+except Exception:  # noqa: BLE001
+    pyodbc = None
 
 REQUIRED_CONNECTION_FIELDS = (
     "tenantId",
@@ -353,6 +363,61 @@ def print_dimension_counts(connection: dict, query_service_uri: str, kusto_token
         print(f"[count] {table_name}: {count}")
 
 
+def run_sql_baseline_seed(connection: dict, hierarchy_config: pathlib.Path) -> bool:
+    target = parse_sql_target(connection)
+    if target is None:
+        print("[stage] skip SQL baseline seed (sqlBaseline metadata not provided)")
+        return False
+
+    if pyodbc is None:
+        raise RuntimeError("pyodbc is required when sqlBaseline metadata is present")
+
+    hierarchy = yaml.safe_load(hierarchy_config.read_text(encoding="utf-8"))
+    nodes = map_hierarchy_config_to_nodes(hierarchy)
+    commands = build_upsert_node_commands(nodes)
+    seed_run_id = str(uuid.uuid4())
+
+    conn_str = build_pyodbc_connection_string(target)
+    with pyodbc.connect(conn_str) as conn:  # type: ignore[union-attr]
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO dbo.baseline_seed_run (seed_run_id, status, seed_source)
+            VALUES (?, 'Running', ?)
+            """,
+            seed_run_id,
+            str(hierarchy_config),
+        )
+
+        try:
+            for statement, params in commands:
+                cursor.execute(statement, params)
+            cursor.execute(
+                """
+                UPDATE dbo.baseline_seed_run
+                SET status='Succeeded', completed_at=SYSUTCDATETIME(), counts=?
+                WHERE seed_run_id=?
+                """,
+                json.dumps({"baselineNodes": len(commands)}),
+                seed_run_id,
+            )
+            conn.commit()
+            print(f"[seed-run] Succeeded: {seed_run_id}")
+            return True
+        except Exception as exc:  # noqa: BLE001
+            cursor.execute(
+                """
+                UPDATE dbo.baseline_seed_run
+                SET status='Failed', completed_at=SYSUTCDATETIME(), error_message=?
+                WHERE seed_run_id=?
+                """,
+                str(exc),
+                seed_run_id,
+            )
+            conn.commit()
+            raise
+
+
 def main() -> int:
     args = parse_args()
     connection = read_connection(pathlib.Path(args.connection))
@@ -384,14 +449,16 @@ def main() -> int:
     print("[stage] seed hierarchy")
     run_hierarchy_seed(pathlib.Path(args.hierarchy_config))
 
-    print("[stage] populate ISA-95 dimensions")
-    detected_data_load = run_hierarchy_kql_seed(
-        pathlib.Path(args.hierarchy_config),
-        connection,
-        query_service_uri,
-        kusto_token,
-        args.log_kql,
-    ) or detected_data_load
+    sql_seeded = run_sql_baseline_seed(connection, pathlib.Path(args.hierarchy_config))
+    if not sql_seeded:
+        print("[stage] populate ISA-95 dimensions")
+        detected_data_load = run_hierarchy_kql_seed(
+            pathlib.Path(args.hierarchy_config),
+            connection,
+            query_service_uri,
+            kusto_token,
+            args.log_kql,
+        ) or detected_data_load
 
     if not detected_data_load:
         warning = (
@@ -402,11 +469,16 @@ def main() -> int:
         if args.fail_on_warning:
             raise RuntimeError(warning)
 
-    print_dimension_counts(connection, query_service_uri, kusto_token)
+    if not sql_seeded:
+        print_dimension_counts(connection, query_service_uri, kusto_token)
 
     print("Model deployment completed")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SqlConnectionValidationError as exc:
+        print(f"SQL connection metadata invalid: {exc}", file=sys.stderr)
+        raise SystemExit(1)

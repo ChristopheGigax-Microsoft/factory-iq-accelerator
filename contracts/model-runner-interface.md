@@ -23,7 +23,9 @@ python shared/scripts/deploy-model.py \
 1. Validate connection contract.
 2. Apply core scripts in lexical order.
 3. Apply extensions in lexical order.
-4. Run hierarchy seeding.
+4. Run hierarchy validation.
+5. If `sqlBaseline` metadata exists, run SQL seed lifecycle (`Running -> Succeeded|Failed`) with idempotent upserts.
+6. Otherwise, run Eventhouse/KQL hierarchy seed fallback.
 
 ## Exit Codes
 
@@ -37,5 +39,6 @@ python shared/scripts/deploy-model.py \
   `python shared/scripts/seed-hierarchy.py --config shared/isa95-model/config/plant-hierarchy.yaml`
 3. Verify core scripts run before extension scripts (lexical order).
 4. Fix input or script errors and rerun full deployment command.
+5. For SQL target failures, inspect `baseline_seed_run.error_message` and validate SQL identity permissions.
 
 Reruns are expected and supported; runner behavior must converge without manual cleanup where possible.

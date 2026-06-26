@@ -39,6 +39,12 @@ Each engine mirrors these logical modules:
 Deployment outputs a single artifact `connection.json`.
 Model deployment consumes only this contract.
 
+## Optional Fabric App and SQL Baseline Path
+
+- `src/fabric-apps` hosts the Rayfin workspace app for online baseline management.
+- When `connection.json` contains `sqlBaseline` metadata, baseline seed writes target SQL tables in `shared/sql/baseline/`.
+- When SQL metadata is absent, the existing Eventhouse/KQL hierarchy seed behavior remains available as fallback.
+
 ## Cross-Engine Parity Validation Checklist
 
 - Use equivalent input values (`plant_code`, `environment`, `region`, `capacity_sku`) for each engine.

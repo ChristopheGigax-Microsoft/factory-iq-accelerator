@@ -9,7 +9,7 @@ This accelerator is a deployment-ready baseline for industrial data platforms on
 At a high level, the accelerator does four things:
 
 1. Provisions the Fabric foundation for one plant: capacity, workspace, eventhouse, KQL database, and eventstream.
-2. Keeps infrastructure engine choice flexible: Terraform, Bicep, or Pulumi.
+2. Keeps infrastructure engine choice flexible: Terraform or Bicep.
 3. Centralizes domain model assets in one shared location aligned to ISA-95.
 4. Produces a stable output contract, `connection.json`, so model deployment is engine-blind.
 
@@ -17,7 +17,7 @@ Core operating principles:
 
 - one stack per plant
 - ISA-95-aligned model foundation
-- three interchangeable IaC engines
+- two interchangeable IaC engines
 - one stable handoff contract (connection.json)
 
 ## What You Get (v1)
@@ -35,7 +35,6 @@ Core operating principles:
 infra/
 	terraform/            # Native Fabric-provider baseline
 	bicep/                # ARM + deploymentScript path
-	pulumi/               # TypeScript componentized path
 
 shared/
 	isa95-model/
@@ -51,11 +50,10 @@ docs/                   # Architecture and validation guidance
 
 ## Choose Your Engine
 
-Pick **exactly one** engine under `infra/` for deployment. You can remove the other two and still have a complete stack.
+Pick **exactly one** engine under `infra/` for deployment. You can remove the other one and still have a complete stack.
 
 - Terraform
 - Bicep
-- Pulumi
 
 ## How To Deploy
 
@@ -63,7 +61,7 @@ Pick **exactly one** engine under `infra/` for deployment. You can remove the ot
 
 - Azure CLI installed and authenticated
 - Access to target subscription/resource group
-- One selected IaC engine: Terraform, Bicep, or Pulumi
+- One selected IaC engine: Terraform or Bicep
 - Python 3.11+ for model deployment scripts
 
 ### 2) Define deployment context
@@ -129,18 +127,6 @@ az deployment group show \
 	--output json > connection.json
 ```
 
-#### Pulumi
-
-```bash
-pulumi -C infra/pulumi stack init dev
-pulumi -C infra/pulumi config set plantCode "$PLANT_CODE"
-pulumi -C infra/pulumi config set environment "$ENVIRONMENT"
-pulumi -C infra/pulumi config set region "$REGION"
-pulumi -C infra/pulumi config set capacitySku "$CAPACITY_SKU"
-pulumi -C infra/pulumi up
-pulumi -C infra/pulumi stack output connectionContract > connection.json
-```
-
 ### 5) Validate connection contract
 
 ```bash
@@ -201,7 +187,7 @@ Use these files as your customization surface.
 | `shared/isa95-model/config/plant-hierarchy.yaml` | Update enterprise/site/area/workCenter/workUnit definitions and IDs | Changes seeded hierarchy in KQL dimensions; affects downstream joins, dashboards, and equipment mapping |
 | `shared/isa95-model/extensions/*.kql` | Add customer entities/functions/policies using numeric prefixes (for example `30_*`, `40_*`) | Adds plant/customer-specific model capabilities without touching core; applied after core on each run |
 | `shared/eventstream/definition/eventstream.json` | Adjust input/output topology and routing | Changes telemetry ingestion path into Eventhouse landing tables |
-| `infra/<engine>/environments/*` or Pulumi config | Adjust plant/environment/region/SKU parameters | Changes deployment naming, target region, and scale footprint |
+| `infra/<engine>/environments/*` | Adjust plant/environment/region/SKU parameters | Changes deployment naming, target region, and scale footprint |
 
 Recommended customization rules:
 

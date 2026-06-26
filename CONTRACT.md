@@ -33,3 +33,4 @@ Model runner interface:
 
 - Breaking field/semantic changes require governance review.
 - Additional diagnostic fields may be included and ignored by the runner.
+- SQL baseline metadata is additive and optional under `sqlBaseline`; required v1.0 fields remain unchanged.

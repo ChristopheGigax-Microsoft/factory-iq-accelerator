@@ -7,9 +7,9 @@ comply with the principles below. When Copilot/Spec-Kit generates code,
 these principles are non-negotiable acceptance gates.
 -->
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Ratified:** 2026-06-02
-**Last amended:** 2026-06-02
+**Last amended:** 2026-06-26
 **Owner:** Christophe Gigax — Solution Engineer, Microsoft France
 
 ---
@@ -28,12 +28,12 @@ a customer who can customize it — especially the data model — without forkin
 
 ### Principle 1 — Engine Independence (NON-NEGOTIABLE)
 The customer chooses **exactly one** Infrastructure-as-Code technology:
-**Terraform**, **Bicep**, or **Pulumi**. The three engines are interchangeable and
+**Terraform** or **Bicep**. The two engines are interchangeable and
 MUST NOT be mixed in a single deployment.
 - Each engine lives in its own self-contained folder under `infra/`.
-- A customer MUST be able to delete the two engines they did not choose and still
+- A customer MUST be able to delete the engine they did not choose and still
   have a complete, working stack.
-- The three engines MUST reach **feature parity**: same resources, same inputs,
+- The two engines MUST reach **feature parity**: same resources, same inputs,
   same outputs.
 - Engines MUST expose the same four logical modules with mirrored names:
   `capacity`, `workspace`, `eventhouse`, `eventstream`.
@@ -79,13 +79,13 @@ The customer MUST be able to extend the solution without editing the core.
 The accelerator lands with the minimum viable footprint and grows by parameter.
 - Default capacity SKU is the smallest viable (F2); scaling up is a variable change.
 - One workspace per plant; a new plant is a new parameter set, not new code.
-- v1 scope is intentionally narrow: Eventstream + Eventhouse + ISA-95 model only.
+- v1 scope is intentionally focused and includes: Eventstream + Eventhouse + ISA-95 model, with an optional Fabric app + SQL baseline management path when explicitly enabled by feature scope.
 
 ---
 
 ## Constraints & Standards
 
-- **Languages:** HCL (Terraform), Bicep, TypeScript (Pulumi), Python (model runner), KQL (model).
+- **Languages:** HCL (Terraform), Bicep, Python (model runner), KQL (model).
 - **Authentication:** Service Principal or Managed Identity; no secrets in source control.
 - **Naming:** every resource name derives from a `plant_code` + `environment` parameter.
 - **State/secrets:** remote state and secret stores configured per engine; never committed.
@@ -106,4 +106,9 @@ The accelerator lands with the minimum viable footprint and grows by parameter.
 - **Compliance:** every `plan.md` MUST include a "Constitution Check" gate. Any
   violation MUST be justified in a "Complexity Tracking" section or the plan is rejected.
 
-**Version:** 1.0.0 | **Ratified:** 2026-06-02 | **Last amended:** 2026-06-02
+## Migration Note (v1.1.0)
+
+- Principle 7 scope wording is expanded to explicitly allow Fabric app and SQL baseline management within v1 when selected by feature scope.
+- Existing specs/plans that previously tracked this as a Principle 7 exception should be updated to remove that exception where applicable.
+
+**Version:** 1.1.0 | **Ratified:** 2026-06-02 | **Last amended:** 2026-06-26
