@@ -12,7 +12,13 @@
   "eventhouseId": "string",
   "kqlDatabase": "string",
   "generatedAt": "ISO-8601 string",
-  "schemaVersion": "1.0"
+  "schemaVersion": "1.0",
+  "sqlBaseline": {
+    "server": "string",
+    "database": "string",
+    "driver": "string",
+    "authentication": "string"
+  }
 }
 ```
 
@@ -21,11 +27,12 @@
 - `workspaceId` and `eventhouseId` must identify resources created by the selected engine run.
 - `kqlDatabase` must match the database where ISA-95 model scripts are applied.
 - `schemaVersion` must be supported by runner implementation.
+- `sqlBaseline` is optional additive metadata. When present, the runner seeds ISA-95 baseline nodes to SQL.
 - Additional fields are allowed for diagnostics and ignored by runner logic.
 
 ## Producer / Consumer
 
-- Producer: Terraform, Bicep, Pulumi deployment outputs.
+- Producer: Terraform or Bicep deployment outputs.
 - Consumer: `shared/scripts/deploy-model.py`.
 
 ## Validation Command Examples

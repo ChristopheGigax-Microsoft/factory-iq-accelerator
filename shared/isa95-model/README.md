@@ -11,3 +11,8 @@
 3. Run `shared/scripts/deploy-model.py` with the same `connection.json`.
 
 Core files remain unchanged during customization and upgrades.
+
+## SQL Baseline Target Notes
+
+- `shared/scripts/deploy-model.py` now supports SQL baseline seeding when `connection.json` includes `sqlBaseline` metadata.
+- SQL schema artifacts are maintained in `shared/sql/baseline/` and should be applied before first SQL-target seed run.
