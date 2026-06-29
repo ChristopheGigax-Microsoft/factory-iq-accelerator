@@ -1,3 +1,7 @@
-export type BlankAppSchema = {};
+import { Isa95BaselineNode } from './Isa95BaselineNode.js';
 
-export const schema = [];
+export type BlankAppSchema = {
+	Isa95BaselineNode: Isa95BaselineNode;
+};
+
+export const schema = [Isa95BaselineNode];

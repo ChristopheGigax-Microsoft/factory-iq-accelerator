@@ -9,20 +9,20 @@ from typing import Iterable
 def build_upsert_node_commands(nodes: Iterable[dict]) -> list[tuple[str, tuple]]:
     commands: list[tuple[str, tuple]] = []
     sql = """
-    MERGE dbo.isa95_baseline_node AS target
-    USING (VALUES (?, ?, ?, ?)) AS source (node_id, node_type, parent_node_id, display_name)
-      ON target.node_id = source.node_id
+    MERGE dbo.Isa95BaselineNodes AS target
+    USING (VALUES (?, ?, ?, ?, ?)) AS source (nodeId, nodeType, parentNodeId, displayName, user_id)
+      ON target.nodeId = source.nodeId
     WHEN MATCHED THEN
       UPDATE SET
-        node_type = source.node_type,
-        parent_node_id = source.parent_node_id,
-        display_name = source.display_name,
+        nodeType = source.nodeType,
+        parentNodeId = source.parentNodeId,
+        displayName = source.displayName,
+        user_id = source.user_id,
         version = target.version + 1,
-        updated_at = SYSUTCDATETIME(),
-        updated_by = 'seed-runner'
+        status = 'Active'
     WHEN NOT MATCHED THEN
-      INSERT (node_id, node_type, parent_node_id, display_name, status, created_by, updated_by)
-      VALUES (source.node_id, source.node_type, source.parent_node_id, source.display_name, 'Active', 'seed-runner', 'seed-runner');
+      INSERT (id, nodeId, nodeType, parentNodeId, displayName, status, version, user_id)
+      VALUES (NEWID(), source.nodeId, source.nodeType, source.parentNodeId, source.displayName, 'Active', 1, source.user_id);
     """
     for node in nodes:
         commands.append(
@@ -33,6 +33,7 @@ def build_upsert_node_commands(nodes: Iterable[dict]) -> list[tuple[str, tuple]]
                     node["nodeType"],
                     node.get("parentNodeId"),
                     node["displayName"],
+                    "seed-runner",
                 ),
             )
         )
