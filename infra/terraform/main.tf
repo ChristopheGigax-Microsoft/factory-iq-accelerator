@@ -65,3 +65,10 @@ module "eventstream" {
   workspace_id    = module.workspace.workspace_id
   definition_path = "../../shared/eventstream/definition/eventstream.json"
 }
+
+module "data_agent" {
+  source       = "./modules/data_agent"
+  name         = "${local.base_name}-agent"
+  description  = "Factory IQ Data Agent for plant ${var.plant_code}"
+  workspace_id = module.workspace.workspace_id
+}

@@ -3,6 +3,7 @@ import { createCapacity } from "./src/capacity";
 import { createWorkspace } from "./src/workspace";
 import { createEventhouse } from "./src/eventhouse";
 import { createEventstream } from "./src/eventstream";
+import { createDataAgent } from "./src/data-agent";
 
 const config = new pulumi.Config();
 const plantCode = config.require("plantCode");
@@ -37,6 +38,12 @@ const eventstream = createEventstream({
   workspaceId: workspace.id,
 });
 
+const dataAgent = createDataAgent({
+  name: `${baseName}-agent`,
+  description: `Factory IQ Data Agent for plant ${plantCode}`,
+  workspaceId: workspace.id,
+});
+
 export const connectionContract = {
   tenantId,
   subscriptionId,
@@ -48,4 +55,5 @@ export const connectionContract = {
   generatedAt: new Date().toISOString(),
   schemaVersion: "1.0",
   eventstreamId: eventstream.id,
+  dataAgentId: dataAgent.id,
 };

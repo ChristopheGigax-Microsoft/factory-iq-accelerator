@@ -8,6 +8,7 @@ var workspaceName = '${baseName}-ws'
 var eventhouseName = '${baseName}-eh'
 var kqlDatabaseName = '${baseName}-kql'
 var eventstreamName = '${baseName}-es'
+var dataAgentName = '${baseName}-agent'
 
 module capacity './modules/capacity.bicep' = {
   name: 'capacity'
@@ -27,7 +28,7 @@ resource createItems 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
     timeout: 'PT30M'
     retentionInterval: 'P1D'
     scriptContent: loadTextContent('./scripts/create-fabric-items.ps1')
-    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName}'
+    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName} -DataAgentName ${dataAgentName}'
   }
 }
 
@@ -39,6 +40,7 @@ output connectionContract object = {
   workspaceId: workspaceName
   eventhouseId: eventhouseName
   kqlDatabase: kqlDatabaseName
+  dataAgentId: dataAgentName
   generatedAt: utcNow()
   schemaVersion: '1.0'
 }
