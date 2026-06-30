@@ -1,0 +1,70 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.5.56/dab.draft.schema.json",
+  "entities": {
+    "Isa95BaselineNode": {
+      "source": "Isa95BaselineNodes",
+      "permissions": [
+        {
+          "role": "authenticated",
+          "actions": [
+            "*"
+          ]
+        }
+      ],
+      "x-schema": {
+        "fields": {
+          "id": {
+            "dbType": "UNIQUEIDENTIFIER",
+            "nullable": false
+          },
+          "nodeId": {
+            "dbType": "NVARCHAR(128)",
+            "nullable": false
+          },
+          "nodeType": {
+            "dbType": "NVARCHAR(32)",
+            "nullable": false
+          },
+          "parentNodeId": {
+            "dbType": "NVARCHAR(128)",
+            "nullable": true
+          },
+          "displayName": {
+            "dbType": "NVARCHAR(256)",
+            "nullable": false
+          },
+          "status": {
+            "dbType": "NVARCHAR(16)",
+            "nullable": false,
+            "defaultValue": "Active"
+          },
+          "version": {
+            "dbType": "INT",
+            "nullable": false,
+            "defaultValue": 1
+          },
+          "user_id": {
+            "dbType": "NVARCHAR(128)",
+            "nullable": false
+          }
+        },
+        "constraints": {
+          "primaryKey": {
+            "name": "PK_Isa95BaselineNodes",
+            "columns": [
+              "id"
+            ]
+          },
+          "uniqueConstraints": [
+            {
+              "name": "UQ_Isa95BaselineNodes_nodeId",
+              "columns": [
+                "nodeId"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

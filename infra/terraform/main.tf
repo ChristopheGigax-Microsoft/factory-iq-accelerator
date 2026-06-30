@@ -67,8 +67,10 @@ module "eventstream" {
 }
 
 module "data_agent" {
-  source       = "./modules/data_agent"
-  name         = "${local.base_name}-agent"
-  description  = "Factory IQ Data Agent for plant ${var.plant_code}"
-  workspace_id = module.workspace.workspace_id
+  source            = "./modules/data_agent"
+  name              = "${local.base_name}-agent"
+  description       = "Factory IQ Data Agent for plant ${var.plant_code}"
+  workspace_id      = module.workspace.workspace_id
+  kql_database_id   = module.eventhouse.kql_database_id
+  kql_database_name = module.eventhouse.kql_database_name
 }

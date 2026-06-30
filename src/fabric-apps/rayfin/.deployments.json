@@ -1,0 +1,15 @@
+{
+  "deployments": {
+    "fiq-plant1-dev-ws": {
+      "fabricItemId": "b7fbab9b-d32a-4d80-aba0-95f3c197773b",
+      "fabricApiUrl": "https://62655d15e6614971a6d9fa7b6baf5c2d.pbidedicated.windows.net/webapi/capacities/62655d15-e661-4971-a6d9-fa7b6baf5c2d/workloads/BaaS/BaaSService/automatic/v1/workspaces/87b8b297-51a2-4e96-9ae4-f012f5802551/appbackends/b7fbab9b-d32a-4d80-aba0-95f3c197773b/",
+      "fabricWorkspaceId": "87b8b297-51a2-4e96-9ae4-f012f5802551",
+      "fabricTenantId": "1a213439-835a-4af1-aae8-f1d280a7a8fc",
+      "publishableKey": "pk-8ePG7oNM0GoFYbT9HEcn",
+      "hostingUrl": "https://jovial-delta-3d0a9aa468-francecentral.webapp.fabricapps.net",
+      "fabricDeepLink": "https://app.fabric.microsoft.com/groups/87b8b297-51a2-4e96-9ae4-f012f5802551/appbackends/b7fbab9b-d32a-4d80-aba0-95f3c197773b?ctid=1a213439-835a-4af1-aae8-f1d280a7a8fc",
+      "deployedAt": "2026-06-30T08:43:19.829Z"
+    }
+  },
+  "active": "fiq-plant1-dev-ws"
+}

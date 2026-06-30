@@ -37,6 +37,10 @@ output "eventhouse_id" {
   value = fabric_eventhouse.this.id
 }
 
+output "kql_database_id" {
+  value = fabric_kql_database.this.id
+}
+
 output "kql_database_name" {
   value = var.kql_database_name
 }
