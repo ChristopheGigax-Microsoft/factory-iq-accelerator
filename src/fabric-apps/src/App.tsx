@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
+import { AppShell } from '@/components/AppShell';
 import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
 import { BaselineManager } from '@/pages/BaselineManager';
@@ -16,8 +17,11 @@ function AuthGuard({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center gradient-mesh">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+          <p className="text-sm text-gray-400">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -31,7 +35,6 @@ function AuthGuard({
 function App() {
   return (
     <BrowserRouter>
-      {/* ensure all new routes require auth */}
       <Routes>
         <Route
           path="/auth"
@@ -45,7 +48,9 @@ function App() {
           path="/"
           element={
             <AuthGuard requireAuth={true}>
-              <HomePage />
+              <AppShell>
+                <HomePage />
+              </AppShell>
             </AuthGuard>
           }
         />
@@ -53,7 +58,9 @@ function App() {
           path="/baseline"
           element={
             <AuthGuard requireAuth={true}>
-              <BaselineManager />
+              <AppShell>
+                <BaselineManager />
+              </AppShell>
             </AuthGuard>
           }
         />

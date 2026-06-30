@@ -8,6 +8,16 @@
   --color-blue-500: oklch(0.623 0.214 259.1);
   --color-blue-600: oklch(0.546 0.245 262.9);
   --color-blue-700: oklch(0.488 0.243 264.4);
+  --color-indigo-50: oklch(0.962 0.018 272);
+  --color-indigo-100: oklch(0.930 0.034 272);
+  --color-indigo-500: oklch(0.585 0.233 277);
+  --color-indigo-600: oklch(0.541 0.281 275.6);
+  --color-emerald-50: oklch(0.979 0.021 166);
+  --color-emerald-400: oklch(0.765 0.177 163);
+  --color-emerald-500: oklch(0.696 0.17 162);
+  --color-amber-50: oklch(0.987 0.026 102);
+  --color-amber-400: oklch(0.828 0.189 84);
+  --color-amber-500: oklch(0.769 0.188 70.1);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -24,5 +34,71 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out both;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-out both;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .gradient-mesh {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
   }
 }
