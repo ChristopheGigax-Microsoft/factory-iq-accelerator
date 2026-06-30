@@ -69,17 +69,7 @@ const nodeTypes = { hierarchy: HierarchyNode };
 function buildGraph(nodes: BaselineNode[]): { nodes: Node[]; edges: Edge[] } {
   const nodeMap = new Map(nodes.map((n) => [n.nodeId, n]));
 
-  // Assign levels based on type hierarchy
-  const typeLevel: Record<string, number> = {
-    Enterprise: 0,
-    Site: 1,
-    Area: 2,
-    WorkCenter: 3,
-    WorkUnit: 4,
-  };
-  void typeLevel; // used for documentation purposes
-
-  // Group by parent for layout
+  // Group by parent
   const childrenMap = new Map<string, BaselineNode[]>();
   const roots: BaselineNode[] = [];
 
@@ -93,23 +83,34 @@ function buildGraph(nodes: BaselineNode[]): { nodes: Node[]; edges: Edge[] } {
     }
   }
 
-  // Layout with BFS
   const flowNodes: Node[] = [];
   const flowEdges: Edge[] = [];
-  const xSpacing = 280;
-  const ySpacing = 140;
+  const xSpacing = 240;
+  const ySpacing = 160;
 
-  // Track positions per level
-  const levelCounters: number[] = [];
+  // Use a simple incremental x-counter for leaf nodes,
+  // then center parents above their children.
+  let leafCounter = 0;
 
-  function traverse(node: BaselineNode, depth: number, xOffset: number): number {
+  function getSubtreeX(node: BaselineNode, depth: number): number {
     const children = childrenMap.get(node.nodeId) || [];
 
+    // Build edges
+    for (const child of children) {
+      flowEdges.push({
+        id: `${node.nodeId}-${child.nodeId}`,
+        source: node.nodeId,
+        target: child.nodeId,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: '#c7d2fe', strokeWidth: 2 },
+      });
+    }
+
     if (children.length === 0) {
-      // Leaf node
-      while (levelCounters.length <= depth) levelCounters.push(0);
-      const x = levelCounters[depth] * xSpacing + xOffset;
-      levelCounters[depth]++;
+      // Leaf: place at the next available slot
+      const x = leafCounter * xSpacing;
+      leafCounter++;
 
       flowNodes.push({
         id: node.nodeId,
@@ -128,23 +129,15 @@ function buildGraph(nodes: BaselineNode[]): { nodes: Node[]; edges: Edge[] } {
       return x;
     }
 
-    // Internal node: position is the center of children
-    const childXs: number[] = [];
+    // Internal node: recurse children first, then center this node
+    const childXPositions: number[] = [];
     for (const child of children) {
-      const childX = traverse(child, depth + 1, xOffset);
-      childXs.push(childX);
-
-      flowEdges.push({
-        id: `${node.nodeId}-${child.nodeId}`,
-        source: node.nodeId,
-        target: child.nodeId,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#c7d2fe', strokeWidth: 2 },
-      });
+      childXPositions.push(getSubtreeX(child, depth + 1));
     }
 
-    const x = childXs.reduce((a, b) => a + b, 0) / childXs.length;
+    const minX = Math.min(...childXPositions);
+    const maxX = Math.max(...childXPositions);
+    const x = (minX + maxX) / 2;
 
     flowNodes.push({
       id: node.nodeId,
@@ -160,18 +153,11 @@ function buildGraph(nodes: BaselineNode[]): { nodes: Node[]; edges: Edge[] } {
       targetPosition: Position.Top,
     });
 
-    // Update level counter
-    while (levelCounters.length <= depth) levelCounters.push(0);
-    const rightmostChild = Math.max(...childXs);
-    levelCounters[depth] = Math.max(levelCounters[depth], Math.ceil((rightmostChild + xSpacing) / xSpacing));
-
     return x;
   }
 
-  let rootOffset = 0;
   for (const root of roots) {
-    traverse(root, 0, rootOffset);
-    rootOffset = (Math.max(...levelCounters) + 1) * xSpacing;
+    getSubtreeX(root, 0);
   }
 
   return { nodes: flowNodes, edges: flowEdges };
