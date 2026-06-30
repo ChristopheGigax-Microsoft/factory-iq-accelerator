@@ -9,7 +9,6 @@ var eventhouseName = '${baseName}-eh'
 var kqlDatabaseName = '${baseName}-kql'
 var eventstreamName = '${baseName}-es'
 var dataAgentName = '${baseName}-agent'
-var fabricAppName = '${baseName}-app'
 
 module capacity './modules/capacity.bicep' = {
   name: 'capacity'
@@ -29,7 +28,7 @@ resource createItems 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
     timeout: 'PT30M'
     retentionInterval: 'P1D'
     scriptContent: loadTextContent('./scripts/create-fabric-items.ps1')
-    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName} -DataAgentName ${dataAgentName} -FabricAppName ${fabricAppName}'
+    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName} -DataAgentName ${dataAgentName}'
   }
 }
 

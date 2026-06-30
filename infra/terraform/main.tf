@@ -59,6 +59,4 @@ module "data_agent" {
   workspace_id      = local.workspace_id
   kql_database_id   = module.eventhouse.kql_database_id
   kql_database_name = module.eventhouse.kql_database_name
-  sql_database_id   = var.sql_database_id
-  sql_database_name = var.sql_database_name
 }

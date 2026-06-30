@@ -43,13 +43,3 @@ variable "workspace_id" {
   type        = string
   description = "Existing Fabric workspace ID"
 }
-
-variable "sql_database_id" {
-  type        = string
-  description = "Fabric App SQL Database ID"
-}
-
-variable "sql_database_name" {
-  type        = string
-  description = "Fabric App SQL Database display name"
-}

@@ -1,3 +1,13 @@
+// ============================================================
+// ISA-95 Part 4 — Real-time Operations Data (KQL Eventhouse)
+// ============================================================
+// ISA-95 hierarchy dimensions (Enterprise, Site, Area, WorkCenter, WorkUnit)
+// are managed by the Fabric App SQL Database (Isa95BaselineNodes).
+// This file defines the real-time operational fact tables only.
+// ============================================================
+
+// --- Telemetry Ingestion (OPC-UA / ISA-88 historian) ---
+// Raw landing table for Eventstream ingestion
 .create-merge table TelemetryLanding (
   Timestamp:datetime,
   WorkUnitId:string,
@@ -6,6 +16,7 @@
   Payload:dynamic
 )
 
+// Cleaned telemetry — auto-populated via update policy from TelemetryLanding
 .create-merge table EquipmentTelemetry (
   Timestamp:datetime,
   WorkUnitId:string,
@@ -13,22 +24,72 @@
   Value:real
 )
 
-.create-merge table EquipmentState (
+// --- ISA-95 Part 2: Equipment Actual ---
+// Tracks equipment state transitions per ISA-95 equipment model
+// States follow ISA-95 / PackML: Running, Idle, Held, Stopped, Aborted, Fault, Maintenance
+.create-merge table EquipmentActual (
   Timestamp:datetime,
   WorkUnitId:string,
-  State:string
+  State:string,
+  StateReason:string,
+  OperatorId:string
 )
 
-.create-merge table ProductionEvent (
-  Timestamp:datetime,
+// --- ISA-95 Part 4: Work Performance ---
+// Work Request — production/work orders from MES/ERP
+.create-merge table WorkRequest (
+  RequestId:string,
   WorkCenterId:string,
-  EventType:string,
-  BatchId:string
+  ProductId:string,
+  QuantityRequested:real,
+  UnitOfMeasure:string,
+  Priority:int,
+  ScheduledStart:datetime,
+  ScheduledEnd:datetime,
+  Status:string,
+  CreatedAt:datetime
 )
 
-.create-merge table QualityEvent (
+// Work Response — actual execution result of a work request
+.create-merge table WorkResponse (
+  ResponseId:string,
+  RequestId:string,
+  WorkCenterId:string,
+  ActualStart:datetime,
+  ActualEnd:datetime,
+  QuantityProduced:real,
+  QuantityRejected:real,
+  Status:string,
+  CompletedAt:datetime
+)
+
+// --- ISA-95 Part 2: Material Actual ---
+// Tracks material lots consumed and produced during operations
+.create-merge table MaterialActual (
   Timestamp:datetime,
+  LotId:string,
+  MaterialDefinitionId:string,
+  WorkCenterId:string,
+  RequestId:string,
+  Direction:string,
+  Quantity:real,
+  UnitOfMeasure:string
+)
+
+// --- ISA-95 Part 2: Quality Test Result ---
+// Quality inspection results linked to work responses and material lots
+.create-merge table QualityTestResult (
+  Timestamp:datetime,
+  TestId:string,
   WorkUnitId:string,
-  DefectCode:string,
+  ResponseId:string,
+  LotId:string,
+  TestSpecificationId:string,
+  Parameter:string,
+  MeasuredValue:real,
+  LowerLimit:real,
+  UpperLimit:real,
+  UnitOfMeasure:string,
+  Result:string,
   Severity:string
 )

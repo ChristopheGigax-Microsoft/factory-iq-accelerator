@@ -4,5 +4,50 @@
   "workspaceId": "{{ .WORKSPACE_ID }}",
   "displayName": "{{ .KQL_DATABASE_NAME }}",
   "type": "kusto",
-  "userDescription": "Factory IQ Eventhouse KQL Database"
+  "userDescription": "Factory IQ Eventhouse — real-time ISA-95 operations data (equipment, production, material, quality).",
+  "dataSourceInstructions": "This KQL database stores real-time factory operations data following the ISA-95 (IEC 62264) standard. ISA-95 hierarchy dimensions (Enterprise, Site, Area, WorkCenter, WorkUnit) are in a separate SQL database.\n\nISA-95 Operations tables:\n- EquipmentActual: equipment state transitions per WorkUnit following ISA-95/PackML states (Running, Idle, Held, Stopped, Aborted, Fault, Maintenance). Includes StateReason and OperatorId.\n- WorkRequest: production/work orders from MES/ERP with product, quantity, schedule, and priority.\n- WorkResponse: actual execution results of work requests — quantities produced/rejected, actual start/end times.\n- MaterialActual: material lot consumption and production linked to work requests. Direction is 'consumed' or 'produced'.\n- QualityTestResult: quality inspection results with measured values vs specification limits, linked to work responses and material lots. Result is 'pass' or 'fail'.\n\nTelemetry tables (OPC-UA / ISA-88 complementary):\n- EquipmentTelemetry: cleaned sensor signals (temperature, pressure, vibration) per WorkUnit — use this for analytics.\n- TelemetryLanding: raw Eventstream ingestion — do NOT query directly.\n\nKey relationships:\n- WorkRequest.RequestId → WorkResponse.RequestId (order → execution)\n- WorkResponse.ResponseId → QualityTestResult.ResponseId (execution → quality)\n- WorkResponse.ResponseId / WorkRequest.RequestId → MaterialActual.RequestId (execution → material)\n- MaterialActual.LotId → QualityTestResult.LotId (material → quality traceability)\n- All tables reference WorkUnitId or WorkCenterId as foreign keys to the SQL hierarchy\n\nOEE calculation:\n- Availability: derive from EquipmentActual state durations (Running vs total)\n- Performance: derive from EquipmentTelemetry signal rates vs nominal\n- Quality: derive from WorkResponse (QuantityProduced - QuantityRejected) / QuantityProduced",
+  "elements": [
+    {
+      "display_name": "EquipmentActual",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "ISA-95 Equipment Actual — state transitions per work unit (Running, Idle, Fault, Maintenance, etc.)"
+    },
+    {
+      "display_name": "WorkRequest",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "ISA-95 Work Request — production/work orders with product, quantity, schedule"
+    },
+    {
+      "display_name": "WorkResponse",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "ISA-95 Work Response — actual execution results with quantities produced/rejected"
+    },
+    {
+      "display_name": "MaterialActual",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "ISA-95 Material Actual — material lot consumption and production per work request"
+    },
+    {
+      "display_name": "QualityTestResult",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "ISA-95 Quality Test Result — inspection results with measured values vs spec limits"
+    },
+    {
+      "display_name": "EquipmentTelemetry",
+      "type": "kusto.table",
+      "is_selected": true,
+      "description": "OPC-UA sensor telemetry — cleaned signals (temperature, pressure, vibration) per work unit"
+    },
+    {
+      "display_name": "TelemetryLanding",
+      "type": "kusto.table",
+      "is_selected": false,
+      "description": "Raw Eventstream ingestion — do NOT query, use EquipmentTelemetry instead"
+    }
+  ]
 }

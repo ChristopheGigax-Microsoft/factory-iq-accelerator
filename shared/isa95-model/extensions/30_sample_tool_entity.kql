@@ -1,6 +1,9 @@
-.create-merge table Tool (
-  ToolId:string,
-  WorkUnitId:string,
-  Name:string,
-  ToolType:string
-)
+// Tool dimension table is managed by the Fabric App SQL Database.
+// This file is kept as reference only — do NOT run against the KQL database.
+//
+// .create-merge table Tool (
+//   ToolId:string,
+//   WorkUnitId:string,
+//   Name:string,
+//   ToolType:string
+// )

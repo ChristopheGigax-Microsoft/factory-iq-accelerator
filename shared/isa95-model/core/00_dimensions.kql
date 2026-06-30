@@ -1,5 +1,8 @@
-.create-merge table Enterprise (EnterpriseId:string, Name:string)
-.create-merge table Site (SiteId:string, EnterpriseId:string, Name:string)
-.create-merge table Area (AreaId:string, SiteId:string, Name:string)
-.create-merge table WorkCenter (WorkCenterId:string, AreaId:string, Name:string)
-.create-merge table WorkUnit (WorkUnitId:string, WorkCenterId:string, Name:string)
+// ISA-95 dimension tables are managed by the Fabric App SQL Database.
+// This file is kept as reference only — do NOT run against the KQL database.
+//
+// .create-merge table Enterprise (EnterpriseId:string, Name:string)
+// .create-merge table Site (SiteId:string, EnterpriseId:string, Name:string)
+// .create-merge table Area (AreaId:string, SiteId:string, Name:string)
+// .create-merge table WorkCenter (WorkCenterId:string, AreaId:string, Name:string)
+// .create-merge table WorkUnit (WorkUnitId:string, WorkCenterId:string, Name:string)
