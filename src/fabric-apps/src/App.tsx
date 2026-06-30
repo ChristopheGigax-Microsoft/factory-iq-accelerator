@@ -4,6 +4,7 @@ import { AppShell } from '@/components/AppShell';
 import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
 import { BaselineManager } from '@/pages/BaselineManager';
+import { HierarchyGraph } from '@/pages/HierarchyGraph';
 import { HomePage } from '@/pages/HomePage';
 
 function AuthGuard({
@@ -60,6 +61,16 @@ function App() {
             <AuthGuard requireAuth={true}>
               <AppShell>
                 <BaselineManager />
+              </AppShell>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/graph"
+          element={
+            <AuthGuard requireAuth={true}>
+              <AppShell>
+                <HierarchyGraph />
               </AppShell>
             </AuthGuard>
           }
