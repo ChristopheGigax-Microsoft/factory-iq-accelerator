@@ -3,7 +3,8 @@ param(
   [Parameter(Mandatory = $true)][string]$EventhouseName,
   [Parameter(Mandatory = $true)][string]$KqlDatabaseName,
   [Parameter(Mandatory = $true)][string]$EventstreamName,
-  [Parameter(Mandatory = $true)][string]$DataAgentName
+  [Parameter(Mandatory = $true)][string]$DataAgentName,
+  [Parameter(Mandatory = $true)][string]$FabricAppName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -47,15 +48,27 @@ $eventstreamBody = @{ displayName = $EventstreamName; type = "Eventstream" } | C
 Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items" -Method Post -Headers $headers -Body $eventstreamBody
 Write-Host "Eventstream created"
 
-# --- Create Data Agent with Eventhouse data source ---
+# --- Look up the Fabric App SQL Database ---
+Write-Host "Looking up Fabric App SQL database: $FabricAppName"
+$items = Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items?type=SQLDatabase" -Headers $headers -Method Get
+$sqlDb = $items.value | Where-Object { $_.displayName -eq $FabricAppName }
+if (-not $sqlDb) {
+  Write-Warning "Fabric App SQL database '$FabricAppName' not found — skipping SQL datasource link"
+  $sqlDbId = $null
+} else {
+  $sqlDbId = $sqlDb.id
+  Write-Host "SQL Database found: $sqlDbId"
+}
+
+# --- Create Data Agent with Eventhouse and SQL data sources ---
 Write-Host "Creating data agent: $DataAgentName"
 
 $dataAgentConfig = @{ '$schema' = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataAgent/2.1.0/schema.json" } | ConvertTo-Json
 $stageConfig = @{
   '$schema'      = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/stageConfiguration/1.0.0/schema.json"
-  aiInstructions = "You are a Factory IQ data assistant. Answer questions about manufacturing data using KQL queries against the Eventhouse database."
+  aiInstructions = "You are a Factory IQ data assistant. Answer questions about manufacturing data using KQL queries against the Eventhouse database and SQL queries against the Fabric App database."
 } | ConvertTo-Json
-$datasourceConfig = @{
+$datasourceKusto = @{
   '$schema'        = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataSource/1.0.0/schema.json"
   artifactId       = $kqlDbId
   workspaceId      = $workspaceId
@@ -64,29 +77,48 @@ $datasourceConfig = @{
   userDescription  = "Factory IQ Eventhouse KQL Database"
 } | ConvertTo-Json
 
+$parts = @(
+  @{
+    path        = "Files/Config/data_agent.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($dataAgentConfig))
+    payloadType = "InlineBase64"
+  },
+  @{
+    path        = "Files/Config/draft/stage_config.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($stageConfig))
+    payloadType = "InlineBase64"
+  },
+  @{
+    path        = "Files/Config/draft/kusto-$KqlDatabaseName/datasource.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceKusto))
+    payloadType = "InlineBase64"
+  }
+)
+
+if ($sqlDbId) {
+  $datasourceSql = @{
+    '$schema'        = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataSource/1.0.0/schema.json"
+    artifactId       = $sqlDbId
+    workspaceId      = $workspaceId
+    displayName      = $FabricAppName
+    type             = "data_warehouse"
+    userDescription  = "Factory IQ Fabric App SQL Database (ISA-95 Baseline Nodes)"
+  } | ConvertTo-Json
+
+  $parts += @{
+    path        = "Files/Config/draft/data_warehouse-$FabricAppName/datasource.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceSql))
+    payloadType = "InlineBase64"
+  }
+}
+
 $dataAgentBody = @{
   displayName = $DataAgentName
   type        = "DataAgent"
   definition  = @{
-    parts = @(
-      @{
-        path        = "Files/Config/data_agent.json"
-        payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($dataAgentConfig))
-        payloadType = "InlineBase64"
-      },
-      @{
-        path        = "Files/Config/draft/stage_config.json"
-        payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($stageConfig))
-        payloadType = "InlineBase64"
-      },
-      @{
-        path        = "Files/Config/draft/kusto-$KqlDatabaseName/datasource.json"
-        payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceConfig))
-        payloadType = "InlineBase64"
-      }
-    )
+    parts = $parts
   }
 } | ConvertTo-Json -Depth 5
 
 Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items" -Method Post -Headers $headers -Body $dataAgentBody
-Write-Host "Data Agent created with Eventhouse data source linked"
+Write-Host "Data Agent created with Eventhouse and SQL data sources linked"

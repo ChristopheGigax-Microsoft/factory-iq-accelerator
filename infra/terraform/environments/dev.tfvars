@@ -6,4 +6,6 @@ tenant_id       = "00000000-0000-0000-0000-000000000000"
 subscription_id = "00000000-0000-0000-0000-000000000000"
 resource_group  = "rg-fiq-plant1-dev"
 capacity_admin_members = ["admin@contoso.onmicrosoft.com"]
-workspace_id    = "00000000-0000-0000-0000-000000000000"
+workspace_id      = "00000000-0000-0000-0000-000000000000"
+sql_database_id   = "00000000-0000-0000-0000-000000000000"
+sql_database_name = "fiq-isa95manager-app"

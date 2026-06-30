@@ -20,11 +20,19 @@ resource "fabric_data_agent" "this" {
       source = "${path.module}/definitions/stage_config.json.tmpl"
     }
     "Files/Config/draft/kusto-${var.kql_database_name}/datasource.json" = {
-      source = "${path.module}/definitions/datasource.json.tmpl"
+      source = "${path.module}/definitions/datasource_kusto.json.tmpl"
       tokens = {
         "KQL_DATABASE_ID"   = var.kql_database_id
         "WORKSPACE_ID"      = var.workspace_id
         "KQL_DATABASE_NAME" = var.kql_database_name
+      }
+    }
+    "Files/Config/draft/data_warehouse-${var.sql_database_name}/datasource.json" = {
+      source = "${path.module}/definitions/datasource_sql.json.tmpl"
+      tokens = {
+        "SQL_DATABASE_ID"   = var.sql_database_id
+        "WORKSPACE_ID"      = var.workspace_id
+        "SQL_DATABASE_NAME" = var.sql_database_name
       }
     }
   }
@@ -54,6 +62,16 @@ variable "kql_database_id" {
 variable "kql_database_name" {
   type        = string
   description = "KQL Database display name"
+}
+
+variable "sql_database_id" {
+  type        = string
+  description = "Fabric SQL Database artifact ID (from Fabric App)"
+}
+
+variable "sql_database_name" {
+  type        = string
+  description = "Fabric SQL Database display name"
 }
 
 output "data_agent_id" {
