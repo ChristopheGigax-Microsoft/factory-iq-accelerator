@@ -1,5 +1,5 @@
 {
-  "name": "baseline-app",
+  "name": "fiq-isa95manager-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -24,6 +24,7 @@
     "@microsoft/rayfin-client": "^1.33.2",
     "@microsoft/rayfin-core": "^1.33.2",
     "@tailwindcss/vite": "^4.1.11",
+    "@xyflow/react": "^12.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"

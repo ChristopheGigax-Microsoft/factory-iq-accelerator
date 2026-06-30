@@ -58,25 +58,40 @@ function pickField<T = unknown>(item: Record<string, unknown>, ...keys: string[]
 
 export async function getBaselineHierarchy(includeInactive = false): Promise<BaselineHierarchyResponse> {
   const client = getRayfinClient();
-  const query = client.data.Isa95BaselineNode.select([
-    'id',
-    'nodeId',
-    'nodeType',
-    'parentNodeId',
-    'displayName',
-    'status',
-    'version',
-    'user_id',
-  ]);
 
-  if (!includeInactive) {
-    query.where({ status: { eq: 'Active' } });
+  // Paginate through all results to handle large hierarchies
+  let allItems: Record<string, unknown>[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
+
+  while (hasMore) {
+    const query = client.data.Isa95BaselineNode.select([
+      'id',
+      'nodeId',
+      'nodeType',
+      'parentNodeId',
+      'displayName',
+      'status',
+      'version',
+      'user_id',
+    ]).first(100);
+
+    if (!includeInactive) {
+      query.where({ status: { eq: 'Active' } });
+    }
+
+    if (cursor) {
+      query.after(cursor);
+    }
+
+    const page = await query.executePaginated();
+    allItems = allItems.concat(page.items as unknown as Record<string, unknown>[]);
+    hasMore = page.hasNextPage;
+    cursor = page.endCursor;
   }
 
-  const items = await query.execute();
-
   return {
-    items: items
+    items: allItems
       .map((raw) => {
         const item = raw as unknown as Record<string, unknown>;
         const nodeId = asText(pickField(item, 'nodeId', 'node_id', 'NodeId', 'NODE_ID'));
