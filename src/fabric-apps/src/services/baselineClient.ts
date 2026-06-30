@@ -73,7 +73,7 @@ export async function getBaselineHierarchy(includeInactive = false): Promise<Bas
     query.where({ status: { eq: 'Active' } });
   }
 
-  const items = await query.execute();
+  const items = await query.first(1000).execute();
 
   return {
     items: items

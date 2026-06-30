@@ -4,6 +4,7 @@ import {
   BackgroundVariant,
   Controls,
   type Edge,
+  Handle,
   type Node,
   type NodeProps,
   Panel,
@@ -30,6 +31,18 @@ function HierarchyNode({ data }: NodeProps) {
   const config = nodeTypeConfig[data.nodeType as string] || nodeTypeConfig.Enterprise;
   return (
     <div className={`group relative rounded-2xl bg-white px-5 py-4 shadow-lg ring-2 ${config.ring} transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 min-w-[180px]`}>
+      {/* Connection handles */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!w-3 !h-3 !bg-gray-300 !border-2 !border-white !-top-1.5"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!w-3 !h-3 !bg-gray-300 !border-2 !border-white !-bottom-1.5"
+      />
+
       {/* Colored top accent */}
       <div className={`absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r ${config.gradient}`} />
 
@@ -172,7 +185,7 @@ function GraphContent() {
   const { fitView } = useReactFlow();
 
   useEffect(() => {
-    getBaselineHierarchy()
+    getBaselineHierarchy(true)
       .then((result) => {
         setBaselineNodes(result.items);
         const graph = buildGraph(result.items);
