@@ -38,3 +38,8 @@ variable "resource_group" {
   type        = string
   description = "Azure resource group name"
 }
+
+variable "workspace_id" {
+  type        = string
+  description = "Existing Fabric workspace ID"
+}

@@ -1,5 +1,5 @@
-id: blank-app
-name: Blank App
+id: fiq-isa95manager-app
+name: FIQ ISA95 Manager
 version: 1.0.0
 services:
   auth:
@@ -11,6 +11,7 @@ services:
     allowedRedirectUris:
       - http://localhost:5173
       - https://jovial-delta-3d0a9aa468-francecentral.webapp.fabricapps.net
+      - https://savvy-lark-0336b8345a-francecentral.webapp.fabricapps.net
   data:
     enabled: true
     dialect: mssql

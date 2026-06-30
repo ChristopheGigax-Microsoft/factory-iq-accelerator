@@ -1,6 +1,6 @@
 {
   "templateId": "blankapp",
-  "icon": "blank-app",
+  "icon": "fiq-isa95manager-app",
   "services": {
     "auth": true,
     "data": true,

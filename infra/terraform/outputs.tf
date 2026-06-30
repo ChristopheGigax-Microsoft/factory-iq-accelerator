@@ -5,7 +5,7 @@ output "connection_contract" {
     subscriptionId = var.subscription_id
     resourceGroup  = var.resource_group
     region         = var.region
-    workspaceId    = module.workspace.workspace_id
+    workspaceId    = local.workspace_id
     eventhouseId   = module.eventhouse.eventhouse_id
     kqlDatabase    = module.eventhouse.kql_database_name
     dataAgentId    = module.data_agent.data_agent_id
