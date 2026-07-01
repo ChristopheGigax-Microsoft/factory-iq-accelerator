@@ -9,6 +9,10 @@ var eventhouseName = '${baseName}-eh'
 var kqlDatabaseName = '${baseName}-kql'
 var eventstreamName = '${baseName}-es'
 var dataAgentName = '${baseName}-agent'
+var aiSearchName = '${baseName}-search'
+var storageAccountName = replace('fiq${plantCode}${environment}sa', '-', '')
+var aiProjectName = '${baseName}-ai-project'
+var aiFoundryName = '${baseName}-ai-foundry'
 
 module capacity './modules/capacity.bicep' = {
   name: 'capacity'
@@ -16,6 +20,44 @@ module capacity './modules/capacity.bicep' = {
     capacityName: '${baseName}-cap'
     location: region
     capacitySku: capacitySku
+  }
+}
+
+module storageAccount './modules/storage-account.bicep' = {
+  name: 'storageAccount'
+  params: {
+    name: storageAccountName
+    location: region
+  }
+}
+
+module aiSearch './modules/ai-search.bicep' = {
+  name: 'aiSearch'
+  params: {
+    name: aiSearchName
+    location: region
+  }
+}
+
+module aiFoundry './modules/ai-foundry.bicep' = {
+  name: 'aiFoundry'
+  params: {
+    foundryName: aiFoundryName
+    projectName: aiProjectName
+    location: region
+    aiSearchName: aiSearch.outputs.name
+    aiSearchId: aiSearch.outputs.id
+    plantCode: plantCode
+  }
+}
+
+module rbac './modules/rbac.bicep' = {
+  name: 'rbac'
+  params: {
+    foundryPrincipalId: aiFoundry.outputs.foundryPrincipalId
+    aiSearchId: aiSearch.outputs.id
+    aiSearchPrincipalId: aiSearch.outputs.principalId
+    storageAccountId: storageAccount.outputs.id
   }
 }
 
@@ -32,6 +74,8 @@ resource createItems 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
   }
 }
 
+param deploymentTimestamp string = utcNow()
+
 output connectionContract object = {
   tenantId: subscription().tenantId
   subscriptionId: subscription().subscriptionId
@@ -41,6 +85,11 @@ output connectionContract object = {
   eventhouseId: eventhouseName
   kqlDatabase: kqlDatabaseName
   dataAgentId: dataAgentName
-  generatedAt: utcNow()
-  schemaVersion: '1.0'
+  foundryEndpoint: aiFoundry.outputs.foundryEndpoint
+  foundryProjectId: aiFoundry.outputs.projectId
+  aiSearchEndpoint: aiSearch.outputs.endpoint
+  modelDeploymentName: aiFoundry.outputs.modelDeployment
+  storageAccountEndpoint: storageAccount.outputs.primaryBlobEndpoint
+  generatedAt: deploymentTimestamp
+  schemaVersion: '3.0'
 }

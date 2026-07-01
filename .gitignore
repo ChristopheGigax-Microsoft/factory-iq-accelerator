@@ -12,6 +12,13 @@ __pycache__/
 venv/
 *.egg-info/
 
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.nupkg
+
 # Terraform
 .terraform/
 *.tfstate*
@@ -34,3 +41,7 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+
+# Terraform plan files
+tfplan
+*.tfplan

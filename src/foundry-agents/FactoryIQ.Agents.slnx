@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="shared\FactoryIQ.Agents.Shared\FactoryIQ.Agents.Shared.csproj" />
+  <Project Path="agents\FactoryIQ.Agents.Operations\FactoryIQ.Agents.Operations.csproj" />
+  <Project Path="agents\FactoryIQ.Agents.Maintenance\FactoryIQ.Agents.Maintenance.csproj" />
+  <Project Path="agents\FactoryIQ.Agents.Quality\FactoryIQ.Agents.Quality.csproj" />
+  <Project Path="agents\FactoryIQ.Agents.PlantManager\FactoryIQ.Agents.PlantManager.csproj" />
+  <Project Path="agents\FactoryIQ.Agents.ContinuousImprovement\FactoryIQ.Agents.ContinuousImprovement.csproj" />
+</Solution>

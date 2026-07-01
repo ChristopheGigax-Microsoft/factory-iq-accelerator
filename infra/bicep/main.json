@@ -1,0 +1,583 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "10071922290046909750"
+    }
+  },
+  "parameters": {
+    "plantCode": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "capacitySku": {
+      "type": "string",
+      "defaultValue": "F2"
+    },
+    "deploymentTimestamp": {
+      "type": "string",
+      "defaultValue": "[utcNow()]"
+    }
+  },
+  "variables": {
+    "$fxv#0": "param(\r\n  [Parameter(Mandatory = $true)][string]$WorkspaceName,\r\n  [Parameter(Mandatory = $true)][string]$EventhouseName,\r\n  [Parameter(Mandatory = $true)][string]$KqlDatabaseName,\r\n  [Parameter(Mandatory = $true)][string]$EventstreamName,\r\n  [Parameter(Mandatory = $true)][string]$DataAgentName\r\n)\r\n\r\n$ErrorActionPreference = 'Stop'\r\n$fabricBaseUrl = \"https://api.fabric.microsoft.com/v1\"\r\n\r\n# Authenticate\r\n$token = (Get-AzAccessToken -ResourceUrl \"https://api.fabric.microsoft.com\").Token\r\n$headers = @{ Authorization = \"Bearer $token\"; \"Content-Type\" = \"application/json\" }\r\n\r\n# --- Create Workspace ---\r\nWrite-Host \"Creating workspace: $WorkspaceName\"\r\n$workspaceBody = @{ displayName = $WorkspaceName } | ConvertTo-Json\r\n$workspace = Invoke-RestMethod -Uri \"$fabricBaseUrl/workspaces\" -Method Post -Headers $headers -Body $workspaceBody\r\n$workspaceId = $workspace.id\r\nWrite-Host \"Workspace created: $workspaceId\"\r\n\r\n# --- Create Eventhouse ---\r\nWrite-Host \"Creating eventhouse: $EventhouseName\"\r\n$eventhouseBody = @{ displayName = $EventhouseName; type = \"Eventhouse\" } | ConvertTo-Json\r\n$eventhouse = Invoke-RestMethod -Uri \"$fabricBaseUrl/workspaces/$workspaceId/items\" -Method Post -Headers $headers -Body $eventhouseBody\r\n$eventhouseId = $eventhouse.id\r\nWrite-Host \"Eventhouse created: $eventhouseId\"\r\n\r\n# --- Create KQL Database ---\r\nWrite-Host \"Creating KQL database: $KqlDatabaseName\"\r\n$kqlDbBody = @{\r\n  displayName    = $KqlDatabaseName\r\n  type           = \"KQLDatabase\"\r\n  creationPayload = @{\r\n    databaseType  = \"ReadWrite\"\r\n    parentEventhouseItemId = $eventhouseId\r\n  }\r\n} | ConvertTo-Json -Depth 3\r\n$kqlDb = Invoke-RestMethod -Uri \"$fabricBaseUrl/workspaces/$workspaceId/items\" -Method Post -Headers $headers -Body $kqlDbBody\r\n$kqlDbId = $kqlDb.id\r\nWrite-Host \"KQL Database created: $kqlDbId\"\r\n\r\n# --- Create Eventstream ---\r\nWrite-Host \"Creating eventstream: $EventstreamName\"\r\n$eventstreamBody = @{ displayName = $EventstreamName; type = \"Eventstream\" } | ConvertTo-Json\r\nInvoke-RestMethod -Uri \"$fabricBaseUrl/workspaces/$workspaceId/items\" -Method Post -Headers $headers -Body $eventstreamBody\r\nWrite-Host \"Eventstream created\"\r\n\r\n# --- Create Data Agent with Eventhouse data source ---\r\nWrite-Host \"Creating data agent: $DataAgentName\"\r\n\r\n$dataAgentConfig = @{ '$schema' = \"https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataAgent/2.1.0/schema.json\" } | ConvertTo-Json\r\n\r\n$aiInstructions = @\"\r\nYou are Factory IQ, an expert manufacturing data assistant for ISA-95 (IEC 62264) compliant factories.\r\n\r\nData architecture:\r\n- KQL Eventhouse: real-time operations data (equipment states, work orders, material tracking, quality results, telemetry)\r\n- SQL Database (separate): ISA-95 hierarchy dimensions (Enterprise > Site > Area > WorkCenter > WorkUnit)\r\n- You only query the KQL Eventhouse. WorkUnitId/WorkCenterId are foreign keys to the hierarchy.\r\n\r\nISA-95 tables you can query:\r\n- EquipmentActual: equipment state transitions (Running, Idle, Held, Stopped, Aborted, Fault, Maintenance) with StateReason and OperatorId\r\n- WorkRequest: production/work orders from MES/ERP (product, quantity, schedule, priority)\r\n- WorkResponse: actual execution results (quantities produced/rejected, actual times)\r\n- MaterialActual: material lot consumption (Direction='consumed') and production (Direction='produced') per work request\r\n- QualityTestResult: inspection results with measured values vs specification limits (pass/fail)\r\n- EquipmentTelemetry: OPC-UA sensor signals (temperature, pressure, vibration) - cleaned, use for analytics\r\n\r\nGuidelines:\r\n- Use KQL for all queries\r\n- Default to last 24 hours unless specified\r\n- For OEE: Availability from EquipmentActual (Running time / total), Performance from EquipmentTelemetry (actual vs nominal rate), Quality from WorkResponse (good / total produced)\r\n- For traceability: follow WorkRequest > WorkResponse > MaterialActual > QualityTestResult chain\r\n- Never query TelemetryLanding (raw ingestion table) - use EquipmentTelemetry instead\r\n- Provide concise, actionable answers with KPIs and trends\r\n\"@\r\n\r\n$stageConfig = @{\r\n  '$schema'      = \"https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/stageConfiguration/1.0.0/schema.json\"\r\n  aiInstructions = $aiInstructions\r\n} | ConvertTo-Json\r\n\r\n$dataSourceInstructions = @\"\r\nThis KQL database stores real-time factory operations data following the ISA-95 (IEC 62264) standard. ISA-95 hierarchy dimensions are in a separate SQL database.\r\n\r\nISA-95 Operations tables:\r\n- EquipmentActual: equipment state transitions per WorkUnit following ISA-95/PackML states (Running, Idle, Held, Stopped, Aborted, Fault, Maintenance). Includes StateReason and OperatorId.\r\n- WorkRequest: production/work orders from MES/ERP with product, quantity, schedule, and priority.\r\n- WorkResponse: actual execution results of work requests - quantities produced/rejected, actual start/end times.\r\n- MaterialActual: material lot consumption and production linked to work requests. Direction is 'consumed' or 'produced'.\r\n- QualityTestResult: quality inspection results with measured values vs specification limits, linked to work responses and material lots. Result is 'pass' or 'fail'.\r\n\r\nTelemetry tables (OPC-UA / ISA-88 complementary):\r\n- EquipmentTelemetry: cleaned sensor signals (temperature, pressure, vibration) per WorkUnit - use this for analytics.\r\n- TelemetryLanding: raw Eventstream ingestion - do NOT query directly.\r\n\r\nKey relationships:\r\n- WorkRequest.RequestId > WorkResponse.RequestId (order > execution)\r\n- WorkResponse.ResponseId > QualityTestResult.ResponseId (execution > quality)\r\n- WorkRequest.RequestId > MaterialActual.RequestId (order > material)\r\n- MaterialActual.LotId > QualityTestResult.LotId (material > quality traceability)\r\n\"@\r\n\r\n$datasourceKusto = @{\r\n  '$schema'              = \"https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataSource/1.0.0/schema.json\"\r\n  artifactId             = $kqlDbId\r\n  workspaceId            = $workspaceId\r\n  displayName            = $KqlDatabaseName\r\n  type                   = \"kusto\"\r\n  userDescription        = \"Factory IQ Eventhouse - real-time ISA-95 operations data (equipment, production, material, quality).\"\r\n  dataSourceInstructions = $dataSourceInstructions\r\n  elements               = @(\r\n    @{ display_name = \"EquipmentActual\";     type = \"kusto.table\"; is_selected = $true;  description = \"ISA-95 Equipment Actual - state transitions per work unit (Running, Idle, Fault, Maintenance, etc.)\" }\r\n    @{ display_name = \"WorkRequest\";         type = \"kusto.table\"; is_selected = $true;  description = \"ISA-95 Work Request - production/work orders with product, quantity, schedule\" }\r\n    @{ display_name = \"WorkResponse\";        type = \"kusto.table\"; is_selected = $true;  description = \"ISA-95 Work Response - actual execution results with quantities produced/rejected\" }\r\n    @{ display_name = \"MaterialActual\";      type = \"kusto.table\"; is_selected = $true;  description = \"ISA-95 Material Actual - material lot consumption and production per work request\" }\r\n    @{ display_name = \"QualityTestResult\";   type = \"kusto.table\"; is_selected = $true;  description = \"ISA-95 Quality Test Result - inspection results with measured values vs spec limits\" }\r\n    @{ display_name = \"EquipmentTelemetry\";  type = \"kusto.table\"; is_selected = $true;  description = \"OPC-UA sensor telemetry - cleaned signals (temperature, pressure, vibration) per work unit\" }\r\n    @{ display_name = \"TelemetryLanding\";    type = \"kusto.table\"; is_selected = $false; description = \"Raw Eventstream ingestion - do NOT query, use EquipmentTelemetry instead\" }\r\n  )\r\n} | ConvertTo-Json -Depth 4\r\n\r\n$parts = @(\r\n  @{\r\n    path        = \"Files/Config/data_agent.json\"\r\n    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($dataAgentConfig))\r\n    payloadType = \"InlineBase64\"\r\n  },\r\n  @{\r\n    path        = \"Files/Config/draft/stage_config.json\"\r\n    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($stageConfig))\r\n    payloadType = \"InlineBase64\"\r\n  },\r\n  @{\r\n    path        = \"Files/Config/draft/kusto-$KqlDatabaseName/datasource.json\"\r\n    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceKusto))\r\n    payloadType = \"InlineBase64\"\r\n  }\r\n)\r\n\r\n$dataAgentBody = @{\r\n  displayName = $DataAgentName\r\n  type        = \"DataAgent\"\r\n  definition  = @{\r\n    parts = $parts\r\n  }\r\n} | ConvertTo-Json -Depth 5\r\n\r\nInvoke-RestMethod -Uri \"$fabricBaseUrl/workspaces/$workspaceId/items\" -Method Post -Headers $headers -Body $dataAgentBody\r\nWrite-Host \"Data Agent created with Eventhouse data source, table selection, and AI instructions\"\r\n",
+    "baseName": "[format('fiq-{0}-{1}', parameters('plantCode'), parameters('environment'))]",
+    "workspaceName": "[format('{0}-ws', variables('baseName'))]",
+    "eventhouseName": "[format('{0}-eh', variables('baseName'))]",
+    "kqlDatabaseName": "[format('{0}-kql', variables('baseName'))]",
+    "eventstreamName": "[format('{0}-es', variables('baseName'))]",
+    "dataAgentName": "[format('{0}-agent', variables('baseName'))]",
+    "aiSearchName": "[format('{0}-search', variables('baseName'))]",
+    "storageAccountName": "[replace(format('fiq{0}{1}sa', parameters('plantCode'), parameters('environment')), '-', '')]",
+    "aiProjectName": "[format('{0}-ai-project', variables('baseName'))]",
+    "aiFoundryName": "[format('{0}-ai-foundry', variables('baseName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2023-08-01",
+      "name": "create-fabric-items",
+      "location": "[parameters('region')]",
+      "kind": "AzurePowerShell",
+      "properties": {
+        "azPowerShellVersion": "11.4",
+        "timeout": "PT30M",
+        "retentionInterval": "P1D",
+        "scriptContent": "[variables('$fxv#0')]",
+        "arguments": "[format('-WorkspaceName {0} -EventhouseName {1} -KqlDatabaseName {2} -EventstreamName {3} -DataAgentName {4}', variables('workspaceName'), variables('eventhouseName'), variables('kqlDatabaseName'), variables('eventstreamName'), variables('dataAgentName'))]"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "capacity",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "capacityName": {
+            "value": "[format('{0}-cap', variables('baseName'))]"
+          },
+          "location": {
+            "value": "[parameters('region')]"
+          },
+          "capacitySku": {
+            "value": "[parameters('capacitySku')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "14722659588149200564"
+            }
+          },
+          "parameters": {
+            "capacityName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "capacitySku": {
+              "type": "string",
+              "defaultValue": "F2"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Fabric/capacities",
+              "apiVersion": "2023-11-01",
+              "name": "[parameters('capacityName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('capacitySku')]",
+                "tier": "Fabric"
+              }
+            }
+          ],
+          "outputs": {
+            "capacityId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Fabric/capacities', parameters('capacityName'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "storageAccount",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[variables('storageAccountName')]"
+          },
+          "location": {
+            "value": "[parameters('region')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "14833858535418083093"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-05-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "kind": "StorageV2",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": false
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}/default/knowledge-base', parameters('name'))]",
+              "properties": {
+                "publicAccess": "None"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "id": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+            },
+            "name": {
+              "type": "string",
+              "value": "[parameters('name')]"
+            },
+            "primaryBlobEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('name')), '2023-05-01').primaryEndpoints.blob]"
+            },
+            "principalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('name')), '2023-05-01', 'full').identity.principalId]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "aiSearch",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[variables('aiSearchName')]"
+          },
+          "location": {
+            "value": "[parameters('region')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "14714476213305783461"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string",
+              "defaultValue": "standard"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Search/searchServices",
+              "apiVersion": "2024-06-01-preview",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('sku')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "hostingMode": "default",
+                "semanticSearch": "standard",
+                "disableLocalAuth": true,
+                "authOptions": {
+                  "aadOrApiKey": {
+                    "aadAuthFailureMode": "http403"
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "id": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
+            },
+            "name": {
+              "type": "string",
+              "value": "[parameters('name')]"
+            },
+            "endpoint": {
+              "type": "string",
+              "value": "[format('https://{0}.search.windows.net', parameters('name'))]"
+            },
+            "principalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Search/searchServices', parameters('name')), '2024-06-01-preview', 'full').identity.principalId]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "aiFoundry",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "foundryName": {
+            "value": "[variables('aiFoundryName')]"
+          },
+          "projectName": {
+            "value": "[variables('aiProjectName')]"
+          },
+          "location": {
+            "value": "[parameters('region')]"
+          },
+          "aiSearchName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.name.value]"
+          },
+          "aiSearchId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.id.value]"
+          },
+          "plantCode": {
+            "value": "[parameters('plantCode')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "9015766625679670257"
+            }
+          },
+          "parameters": {
+            "foundryName": {
+              "type": "string"
+            },
+            "projectName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            },
+            "aiSearchName": {
+              "type": "string"
+            },
+            "aiSearchId": {
+              "type": "string"
+            },
+            "plantCode": {
+              "type": "string"
+            },
+            "modelDeploymentName": {
+              "type": "string",
+              "defaultValue": "gpt-4o"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2025-06-01",
+              "name": "[parameters('foundryName')]",
+              "location": "[parameters('location')]",
+              "kind": "AIServices",
+              "sku": {
+                "name": "S0"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "customSubDomainName": "[parameters('foundryName')]",
+                "allowProjectManagement": true
+              }
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2024-10-01",
+              "name": "[format('{0}/{1}', parameters('foundryName'), parameters('modelDeploymentName'))]",
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "gpt-4o",
+                  "version": "2024-11-20"
+                }
+              },
+              "sku": {
+                "name": "GlobalStandard",
+                "capacity": 30
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects",
+              "apiVersion": "2025-06-01",
+              "name": "[format('{0}/{1}', parameters('foundryName'), parameters('projectName'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "S0"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "displayName": "Factory IQ Agents",
+                "description": "[format('Manufacturing agents for plant {0}', parameters('plantCode'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}', parameters('foundryName'), 'ai-search-connection')]",
+              "properties": {
+                "category": "CognitiveSearch",
+                "authType": "AAD",
+                "isSharedToAll": true,
+                "target": "[format('https://{0}.search.windows.net', parameters('aiSearchName'))]",
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[parameters('aiSearchId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "foundryId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName'))]"
+            },
+            "foundryEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName')), '2025-06-01').endpoint]"
+            },
+            "foundryPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName')), '2025-06-01', 'full').identity.principalId]"
+            },
+            "projectId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName'))]"
+            },
+            "modelDeployment": {
+              "type": "string",
+              "value": "[parameters('modelDeploymentName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'aiSearch')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "rbac",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "foundryPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryPrincipalId.value]"
+          },
+          "aiSearchId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.id.value]"
+          },
+          "aiSearchPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.principalId.value]"
+          },
+          "storageAccountId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'storageAccount'), '2025-04-01').outputs.id.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.41.2.15936",
+              "templateHash": "3025753720293837380"
+            }
+          },
+          "parameters": {
+            "foundryPrincipalId": {
+              "type": "string"
+            },
+            "aiSearchId": {
+              "type": "string"
+            },
+            "aiSearchPrincipalId": {
+              "type": "string"
+            },
+            "storageAccountId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "searchIndexDataReader": "1407120a-92aa-4202-b7e9-c0e197c71c8f",
+            "searchServiceContributor": "7ca78c08-252a-4471-8644-bb5ff32d4ba0",
+            "storageBlobDataReader": "2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('aiSearchId'), parameters('foundryPrincipalId'), variables('searchIndexDataReader'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('searchIndexDataReader'))]",
+                "principalId": "[parameters('foundryPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('aiSearchId'), parameters('foundryPrincipalId'), variables('searchServiceContributor'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('searchServiceContributor'))]",
+                "principalId": "[parameters('foundryPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('storageAccountId'), parameters('foundryPrincipalId'), variables('storageBlobDataReader'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataReader'))]",
+                "principalId": "[parameters('foundryPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('storageAccountId'), parameters('aiSearchPrincipalId'), variables('storageBlobDataReader'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataReader'))]",
+                "principalId": "[parameters('aiSearchPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'aiFoundry')]",
+        "[resourceId('Microsoft.Resources/deployments', 'aiSearch')]",
+        "[resourceId('Microsoft.Resources/deployments', 'storageAccount')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "connectionContract": {
+      "type": "object",
+      "value": {
+        "tenantId": "[subscription().tenantId]",
+        "subscriptionId": "[subscription().subscriptionId]",
+        "resourceGroup": "[resourceGroup().name]",
+        "region": "[parameters('region')]",
+        "workspaceId": "[variables('workspaceName')]",
+        "eventhouseId": "[variables('eventhouseName')]",
+        "kqlDatabase": "[variables('kqlDatabaseName')]",
+        "dataAgentId": "[variables('dataAgentName')]",
+        "foundryEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryEndpoint.value]",
+        "foundryProjectId": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.projectId.value]",
+        "aiSearchEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.endpoint.value]",
+        "modelDeploymentName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.modelDeployment.value]",
+        "storageAccountEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'storageAccount'), '2025-04-01').outputs.primaryBlobEndpoint.value]",
+        "generatedAt": "[parameters('deploymentTimestamp')]",
+        "schemaVersion": "3.0"
+      }
+    }
+  }
+}

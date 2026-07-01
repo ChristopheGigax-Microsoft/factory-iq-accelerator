@@ -29,12 +29,35 @@ Core operating principles:
 - ISA-95 core model scripts and update policies
 - Model deployment + hierarchy seeding scripts
 
+## What You Get (v2 — Foundry Agents)
+
+- Azure AI Foundry Hub + Project (system MI)
+- Azure OpenAI Service with GPT-4o deployment
+- Azure AI Search (semantic/hybrid search for Foundry IQ)
+- Storage Account with knowledge base container
+- Full RBAC provisioning between all resources
+- 5 Manufacturing Agents (C#/.NET 10, Microsoft Agent Framework):
+  - **Operations Agent** — OEE monitoring, deviation detection
+  - **Maintenance Agent** — alarm correlation, asset history
+  - **Quality Agent** — defect investigation, SPC analysis
+  - **Plant Manager Agent** — executive summaries, risk escalation
+  - **Continuous Improvement Agent** — loss analysis, kaizen opportunities
+- Foundry IQ knowledge base with sample documents (maintenance procedures, quality standards, lean templates)
+- Integration via Fabric Data Agent + Fabric IQ
+
 ## Repo Tour
 
 ```text
 infra/
-	terraform/            # Native Fabric-provider baseline
-	bicep/                # ARM + deploymentScript path
+	terraform/            # Native Fabric-provider baseline + Foundry modules
+	bicep/                # ARM + deploymentScript path + Foundry modules
+
+src/
+	fabric-apps/          # Rayfin workspace app for baseline management
+	foundry-agents/       # AI Foundry manufacturing agents (.NET 10)
+		shared/             # Common services, models, config
+		agents/             # 5 agent projects (Operations, Maintenance, Quality, PlantManager, CI)
+		knowledge/          # Sample documents for Foundry IQ (AI Search)
 
 shared/
 	isa95-model/
@@ -223,3 +246,4 @@ python shared/scripts/seed-hierarchy.py --config shared/isa95-model/config/plant
 - Start with the engine README in your chosen folder under `infra/`
 - Follow full runbook in `specs/001-fabric-foundation/quickstart.md`
 - Review architecture constraints in `docs/architecture.md`
+- Set up Foundry agents: see `docs/foundry-agents.md`

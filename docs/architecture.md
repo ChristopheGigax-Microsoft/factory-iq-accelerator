@@ -58,3 +58,34 @@ Model deployment consumes only this contract.
 - No secrets in repository.
 - Use Service Principal or Managed Identity.
 - Keep state and temporary artifacts out of source control.
+
+## Foundry Agent Layer
+
+The accelerator includes an Azure AI Foundry project with 5 manufacturing agents built on Microsoft Agent Framework (.NET 10).
+
+### Foundry Resources
+- AI Foundry Hub + Project (with system-assigned managed identity)
+- Azure OpenAI Service (GPT-4o deployment)
+- Azure AI Search (semantic search for Foundry IQ knowledge base)
+- Storage Account (knowledge base documents in `knowledge-base` container)
+
+### Fabric ↔ Foundry Integration Paths
+1. **Fabric Data Agent**: Conversational KQL queries over Eventhouse telemetry (OBO auth)
+2. **Fabric IQ**: Semantic layer for ontology-grounded queries (shared entity model)
+
+### RBAC
+All role assignments are provisioned via IaC (both Terraform and Bicep):
+- Foundry Project MI → AI Search (reader + contributor)
+- Foundry Project MI → Storage (blob reader)
+- Foundry Project MI → OpenAI (user)
+- AI Search MI → Storage (blob reader for indexer)
+- Hub MI → AI Search (reader) + Storage (contributor)
+
+### Agent Naming
+Agents follow the same `fiq-{plant_code}-{environment}` convention:
+- `fiq-{plant}-{env}-ai-hub`
+- `fiq-{plant}-{env}-ai-project`
+- `fiq-{plant}-{env}-openai`
+- `fiq-{plant}-{env}-search`
+
+See `docs/foundry-agents.md` for full agent documentation.

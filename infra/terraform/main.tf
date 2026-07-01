@@ -60,3 +60,36 @@ module "data_agent" {
   kql_database_id   = module.eventhouse.kql_database_id
   kql_database_name = module.eventhouse.kql_database_name
 }
+
+module "storage_account" {
+  source              = "./modules/storage_account"
+  name                = replace("fiq${var.plant_code}${var.environment}sa", "-", "")
+  location            = var.region
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+module "ai_search" {
+  source              = "./modules/ai_search"
+  name                = "${local.base_name}-search"
+  location            = var.region
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+module "ai_foundry" {
+  source              = "./modules/ai_foundry"
+  foundry_name        = "${local.base_name}-ai-foundry"
+  project_name        = "${local.base_name}-ai-project"
+  location            = var.region
+  resource_group_name = azurerm_resource_group.this.name
+  plant_code          = var.plant_code
+  ai_search_name      = module.ai_search.name
+  ai_search_id        = module.ai_search.id
+}
+
+module "rbac" {
+  source                  = "./modules/rbac"
+  foundry_principal_id    = module.ai_foundry.foundry_principal_id
+  ai_search_id            = module.ai_search.id
+  ai_search_principal_id  = module.ai_search.principal_id
+  storage_account_id      = module.storage_account.id
+}
