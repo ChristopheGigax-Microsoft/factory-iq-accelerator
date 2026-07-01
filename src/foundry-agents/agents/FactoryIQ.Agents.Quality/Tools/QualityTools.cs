@@ -1,46 +1,56 @@
+using System.Text.Json;
+using Azure.AI.Agents.Persistent;
+using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 
 namespace FactoryIQ.Agents.Quality.Tools;
 
-/// <summary>
-/// Function tools exposed to the Quality Agent.
-/// </summary>
 public sealed class QualityTools(FabricDataAgentService fabricDataAgent, KnowledgeSearchService knowledgeSearch)
+    : FunctionToolExecutorBase
 {
-    /// <summary>
-    /// Query quality inspection data, scrap records, and SPC metrics from KQL.
-    /// </summary>
-    public async Task<string> QueryQualityDataAsync(string query, CancellationToken ct = default)
+    private readonly IReadOnlyList<ToolDefinition> _toolDefinitions =
+    [
+        CreateFunctionTool(
+            "query_quality_data",
+            "Query inspection, SPC, defect, and scrap data from the plant telemetry store.",
+            new ToolParameter("query", "The quality data question to answer.")),
+        CreateFunctionTool(
+            "search_quality_standards",
+            "Search quality standards, procedures, and product specifications.",
+            new ToolParameter("query", "The quality standards search query.")),
+        CreateFunctionTool(
+            "analyze_batch",
+            "Analyze quality metrics and anomalies for a specific production batch.",
+            new ToolParameter("batch_id", "The production batch identifier.")),
+    ];
+
+    public override IReadOnlyList<ToolDefinition> ToolDefinitions => _toolDefinitions;
+
+    public override async Task<string> InvokeAsync(RequiredFunctionToolCall toolCall, CancellationToken ct = default)
     {
-        return await fabricDataAgent.QueryAsync(query, ct);
+        using JsonDocument args = JsonDocument.Parse(toolCall.Arguments);
+        return toolCall.Name switch
+        {
+            "query_quality_data" => await QueryQualityDataAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "search_quality_standards" => await SearchQualityStandardsAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "analyze_batch" => await AnalyzeBatchAsync(GetRequiredString(args.RootElement, "batch_id"), ct),
+            _ => throw new InvalidOperationException($"Unsupported tool call: {toolCall.Name}"),
+        };
     }
 
-    /// <summary>
-    /// Search quality standards, SPC documentation, and inspection criteria (Foundry IQ / AI Search).
-    /// </summary>
+    public Task<string> QueryQualityDataAsync(string query, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(query, ct);
+
     public async Task<string> SearchQualityStandardsAsync(string query, CancellationToken ct = default)
     {
         var results = await knowledgeSearch.SearchAsync(query, maxResults: 4, ct: ct);
-        return string.Join("\n\n", results.Select(r => $"**{r.Title}** (relevance: {r.Score:F2})\n{r.Content}"));
+        return string.Join(
+            Environment.NewLine + Environment.NewLine,
+            results.Select(r => $"**{r.Title}** (score: {r.Score:F2}){Environment.NewLine}{r.Content}"));
     }
 
-    /// <summary>
-    /// Search external supplier specifications and industry benchmarks (Web IQ).
-    /// In production, this would call a web search API or supplier portal.
-    /// </summary>
-    public Task<string> SearchWebAsync(string query, CancellationToken ct = default)
-    {
-        // Placeholder: In production, integrate with Bing/Web IQ for external supplier spec lookups
-        return Task.FromResult($"[Web IQ] Search results for: {query}\n(Web IQ integration pending configuration)");
-    }
-
-    /// <summary>
-    /// Get process parameter history for a specific batch and machine.
-    /// </summary>
-    public async Task<string> GetProcessParametersAsync(string batchId, string machineId, CancellationToken ct = default)
-    {
-        return await fabricDataAgent.QueryAsync(
-            $"Get all process parameters (temperature, pressure, speed, humidity) for batch {batchId} on machine {machineId} with timestamps",
+    public Task<string> AnalyzeBatchAsync(string batchId, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(
+            $"Analyze inspection results, SPC trends, scrap, and quality anomalies for batch {batchId}.",
             ct);
-    }
 }

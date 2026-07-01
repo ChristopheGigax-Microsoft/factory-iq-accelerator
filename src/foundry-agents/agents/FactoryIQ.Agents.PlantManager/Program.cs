@@ -1,4 +1,6 @@
 using FactoryIQ.Agents.PlantManager;
+using FactoryIQ.Agents.PlantManager.Tools;
+using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -6,23 +8,16 @@ using Microsoft.Extensions.Logging;
 var config = ServiceRegistration.LoadConfigFromEnvironment();
 var services = new ServiceCollection();
 services.AddFoundryAgentServices(config);
-services.AddSingleton<KnowledgeSearchService>();
-services.AddSingleton<FabricDataAgentService>();
+services.AddSingleton<PlantManagerTools>();
 services.AddSingleton<PlantManagerAgent>();
 
-await using var provider = services.BuildServiceProvider();
+using var provider = services.BuildServiceProvider();
 var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
 var agent = provider.GetRequiredService<PlantManagerAgent>();
 
-logger.LogInformation("Starting Plant Manager Agent...");
-
 try
 {
-    await agent.InitializeAsync();
-
-    // Example: daily plant summary
-    var result = await agent.GeneratePlantSummaryAsync("plant-001");
-    logger.LogInformation("Plant summary:\n{Result}", result);
+    await AgentConsoleHost.RunAsync(agent, config, logger, args);
 }
 catch (Exception ex)
 {

@@ -1,16 +1,17 @@
 namespace FactoryIQ.Agents.Shared.Models;
 
 /// <summary>
-/// Configuration loaded from environment/connection.json for the Foundry project.
+/// Configuration loaded from environment variables for Azure AI Foundry and supporting services.
 /// </summary>
 public sealed record FoundryConfig
 {
     public required string ProjectEndpoint { get; init; }
     public required string ModelDeploymentName { get; init; }
     public required string AiSearchEndpoint { get; init; }
-    public required string StorageAccountEndpoint { get; init; }
+    public string? StorageAccountEndpoint { get; init; }
     public string? DataAgentId { get; init; }
     public string? WorkspaceId { get; init; }
+    public bool DeletePersistentAgentOnExit { get; init; }
 }
 
 /// <summary>

@@ -1,4 +1,4 @@
-using Azure.AI.Projects;
+using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 using Azure.Search.Documents;
 using FactoryIQ.Agents.Shared.Models;
@@ -12,18 +12,24 @@ namespace FactoryIQ.Agents.Shared.Services;
 /// </summary>
 public static class ServiceRegistration
 {
+    private const string DefaultProjectEndpoint = "https://fiq-plant1-dev-ai-foundry.cognitiveservices.azure.com/";
+
     public static IServiceCollection AddFoundryAgentServices(this IServiceCollection services, FoundryConfig config)
     {
         services.AddSingleton(config);
 
-        services.AddSingleton(_ => new AIProjectClient(
-            new Uri(config.ProjectEndpoint),
+        services.AddSingleton(_ => new PersistentAgentsClient(
+            config.ProjectEndpoint,
             new DefaultAzureCredential()));
 
         services.AddSingleton(_ => new SearchClient(
             new Uri(config.AiSearchEndpoint),
             "knowledge-base",
             new DefaultAzureCredential()));
+
+        services.AddSingleton<AgentRunner>();
+        services.AddSingleton<KnowledgeSearchService>();
+        services.AddSingleton<FabricDataAgentService>();
 
         services.AddLogging(builder =>
         {
@@ -43,12 +49,18 @@ public static class ServiceRegistration
     {
         return new FoundryConfig
         {
-            ProjectEndpoint = GetRequired("AZURE_AI_PROJECT_ENDPOINT"),
+            ProjectEndpoint = Environment.GetEnvironmentVariable("PROJECT_ENDPOINT")
+                ?? Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_ENDPOINT")
+                ?? DefaultProjectEndpoint,
             ModelDeploymentName = Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME") ?? "gpt-4o",
             AiSearchEndpoint = GetRequired("AI_SEARCH_ENDPOINT"),
-            StorageAccountEndpoint = GetRequired("STORAGE_ACCOUNT_ENDPOINT"),
+            StorageAccountEndpoint = Environment.GetEnvironmentVariable("STORAGE_ACCOUNT_ENDPOINT"),
             DataAgentId = Environment.GetEnvironmentVariable("FABRIC_DATA_AGENT_ID"),
             WorkspaceId = Environment.GetEnvironmentVariable("FABRIC_WORKSPACE_ID"),
+            DeletePersistentAgentOnExit = bool.TryParse(
+                Environment.GetEnvironmentVariable("DELETE_PERSISTENT_AGENT_ON_EXIT"),
+                out var deleteOnExit)
+                && deleteOnExit,
         };
     }
 

@@ -1,4 +1,6 @@
 using FactoryIQ.Agents.Quality;
+using FactoryIQ.Agents.Quality.Tools;
+using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -6,23 +8,16 @@ using Microsoft.Extensions.Logging;
 var config = ServiceRegistration.LoadConfigFromEnvironment();
 var services = new ServiceCollection();
 services.AddFoundryAgentServices(config);
-services.AddSingleton<KnowledgeSearchService>();
-services.AddSingleton<FabricDataAgentService>();
+services.AddSingleton<QualityTools>();
 services.AddSingleton<QualityAgent>();
 
-await using var provider = services.BuildServiceProvider();
+using var provider = services.BuildServiceProvider();
 var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
 var agent = provider.GetRequiredService<QualityAgent>();
 
-logger.LogInformation("Starting Quality Agent...");
-
 try
 {
-    await agent.InitializeAsync();
-
-    // Example: investigate a defect batch
-    var result = await agent.InvestigateDefectAsync("batch-2024-1547", "surface-crack", "machine-003");
-    logger.LogInformation("Investigation result:\n{Result}", result);
+    await AgentConsoleHost.RunAsync(agent, config, logger, args);
 }
 catch (Exception ex)
 {

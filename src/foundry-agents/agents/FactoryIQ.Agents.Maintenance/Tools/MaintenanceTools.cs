@@ -1,46 +1,56 @@
+using System.Text.Json;
+using Azure.AI.Agents.Persistent;
+using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 
 namespace FactoryIQ.Agents.Maintenance.Tools;
 
-/// <summary>
-/// Function tools exposed to the Maintenance Agent.
-/// </summary>
 public sealed class MaintenanceTools(FabricDataAgentService fabricDataAgent, KnowledgeSearchService knowledgeSearch)
+    : FunctionToolExecutorBase
 {
-    /// <summary>
-    /// Query sensor data and alarms from the KQL database.
-    /// </summary>
-    public async Task<string> QuerySensorDataAsync(string query, CancellationToken ct = default)
+    private readonly IReadOnlyList<ToolDefinition> _toolDefinitions =
+    [
+        CreateFunctionTool(
+            "query_sensor_data",
+            "Query sensor, alarm, and machine condition data from the plant telemetry store.",
+            new ToolParameter("query", "The sensor or alarm question to answer.")),
+        CreateFunctionTool(
+            "search_maintenance_docs",
+            "Search maintenance procedures, runbooks, and OEM documentation.",
+            new ToolParameter("query", "The maintenance documentation search query.")),
+        CreateFunctionTool(
+            "get_asset_history",
+            "Get maintenance and repair history for an asset.",
+            new ToolParameter("asset_id", "The asset identifier.")),
+    ];
+
+    public override IReadOnlyList<ToolDefinition> ToolDefinitions => _toolDefinitions;
+
+    public override async Task<string> InvokeAsync(RequiredFunctionToolCall toolCall, CancellationToken ct = default)
     {
-        return await fabricDataAgent.QueryAsync(query, ct);
+        using JsonDocument args = JsonDocument.Parse(toolCall.Arguments);
+        return toolCall.Name switch
+        {
+            "query_sensor_data" => await QuerySensorDataAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "search_maintenance_docs" => await SearchMaintenanceDocsAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "get_asset_history" => await GetAssetHistoryAsync(GetRequiredString(args.RootElement, "asset_id"), ct),
+            _ => throw new InvalidOperationException($"Unsupported tool call: {toolCall.Name}"),
+        };
     }
 
-    /// <summary>
-    /// Search maintenance procedures, runbooks, and OEM manuals (Foundry IQ / AI Search).
-    /// </summary>
+    public Task<string> QuerySensorDataAsync(string query, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(query, ct);
+
     public async Task<string> SearchMaintenanceDocsAsync(string query, CancellationToken ct = default)
     {
         var results = await knowledgeSearch.SearchAsync(query, maxResults: 4, ct: ct);
-        return string.Join("\n\n", results.Select(r => $"**{r.Title}** (relevance: {r.Score:F2})\n{r.Content}"));
+        return string.Join(
+            Environment.NewLine + Environment.NewLine,
+            results.Select(r => $"**{r.Title}** (score: {r.Score:F2}){Environment.NewLine}{r.Content}"));
     }
 
-    /// <summary>
-    /// Query work orders from Work IQ (structured task/work order data).
-    /// </summary>
-    public async Task<string> QueryWorkOrdersAsync(string machineId, string timeRange, CancellationToken ct = default)
-    {
-        return await fabricDataAgent.QueryAsync(
-            $"Get all work orders for machine {machineId} in the last {timeRange}, including status, type, and completion details",
+    public Task<string> GetAssetHistoryAsync(string assetId, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(
+            $"Get maintenance history, repairs, alarms, and work performed for asset {assetId}.",
             ct);
-    }
-
-    /// <summary>
-    /// Get full asset maintenance history.
-    /// </summary>
-    public async Task<string> GetAssetHistoryAsync(string machineId, CancellationToken ct = default)
-    {
-        return await fabricDataAgent.QueryAsync(
-            $"Get complete maintenance history for asset {machineId} including preventive, corrective, and emergency work orders with outcomes",
-            ct);
-    }
 }

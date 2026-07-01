@@ -1,36 +1,56 @@
+using System.Text.Json;
+using Azure.AI.Agents.Persistent;
+using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 
 namespace FactoryIQ.Agents.Operations.Tools;
 
-/// <summary>
-/// Function tools exposed to the Operations Agent for querying plant telemetry.
-/// </summary>
 public sealed class OperationsTools(FabricDataAgentService fabricDataAgent, KnowledgeSearchService knowledgeSearch)
+    : FunctionToolExecutorBase
 {
-    /// <summary>
-    /// Query real-time machine telemetry from the KQL database via the Fabric Data Agent.
-    /// </summary>
-    public async Task<string> QueryTelemetryAsync(string query, CancellationToken ct = default)
+    private readonly IReadOnlyList<ToolDefinition> _toolDefinitions =
+    [
+        CreateFunctionTool(
+            "query_telemetry",
+            "Query real-time or historical plant telemetry through the Fabric Data Agent.",
+            new ToolParameter("query", "The telemetry or KQL-style question to answer.")),
+        CreateFunctionTool(
+            "search_knowledge",
+            "Search operational procedures, playbooks, and operating guidance in Azure AI Search.",
+            new ToolParameter("query", "The procedure or knowledge base search query.")),
+        CreateFunctionTool(
+            "get_oee_metrics",
+            "Get OEE metrics for a plant, line, or work center.",
+            new ToolParameter("entity_id", "The plant, line, or work center identifier.")),
+    ];
+
+    public override IReadOnlyList<ToolDefinition> ToolDefinitions => _toolDefinitions;
+
+    public override async Task<string> InvokeAsync(RequiredFunctionToolCall toolCall, CancellationToken ct = default)
     {
-        return await fabricDataAgent.QueryAsync(query, ct);
+        using JsonDocument args = JsonDocument.Parse(toolCall.Arguments);
+        return toolCall.Name switch
+        {
+            "query_telemetry" => await QueryTelemetryAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "search_knowledge" => await SearchKnowledgeAsync(GetRequiredString(args.RootElement, "query"), ct),
+            "get_oee_metrics" => await GetOeeMetricsAsync(GetRequiredString(args.RootElement, "entity_id"), ct),
+            _ => throw new InvalidOperationException($"Unsupported tool call: {toolCall.Name}"),
+        };
     }
 
-    /// <summary>
-    /// Search the OEE procedures and deviation playbooks in the knowledge base.
-    /// </summary>
+    public Task<string> QueryTelemetryAsync(string query, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(query, ct);
+
     public async Task<string> SearchKnowledgeAsync(string query, CancellationToken ct = default)
     {
         var results = await knowledgeSearch.SearchAsync(query, maxResults: 3, ct: ct);
-        return string.Join("\n\n", results.Select(r => $"**{r.Title}** (score: {r.Score:F2})\n{r.Content}"));
+        return string.Join(
+            Environment.NewLine + Environment.NewLine,
+            results.Select(r => $"**{r.Title}** (score: {r.Score:F2}){Environment.NewLine}{r.Content}"));
     }
 
-    /// <summary>
-    /// Get current OEE metrics for a specific work center or plant.
-    /// </summary>
-    public async Task<string> GetOeeMetricsAsync(string entityId, CancellationToken ct = default)
-    {
-        return await fabricDataAgent.QueryAsync(
-            $"Calculate the current OEE (Availability, Performance, Quality) for entity {entityId} over the last shift",
+    public Task<string> GetOeeMetricsAsync(string entityId, CancellationToken ct = default) =>
+        fabricDataAgent.QueryAsync(
+            $"Get current OEE for entity {entityId}, including availability, performance, quality, and overall effectiveness.",
             ct);
-    }
 }
