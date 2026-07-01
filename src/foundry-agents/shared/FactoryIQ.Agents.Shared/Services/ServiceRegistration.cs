@@ -66,7 +66,7 @@ public static class ServiceRegistration
             DeletePersistentAgentOnExit = bool.TryParse(
                 Environment.GetEnvironmentVariable("DELETE_PERSISTENT_AGENT_ON_EXIT"),
                 out var deleteOnExit)
-                && deleteOnExit,
+                && deleteOnExit, // default: false — agents stay persistent in Foundry
         };
     }
 
