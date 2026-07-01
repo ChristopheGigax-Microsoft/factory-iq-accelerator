@@ -12,15 +12,21 @@ namespace FactoryIQ.Agents.Shared.Services;
 /// </summary>
 public static class ServiceRegistration
 {
-    private const string DefaultProjectEndpoint = "https://fiq-plant1-dev-ai-foundry.cognitiveservices.azure.com/";
+    private const string DefaultProjectEndpoint = "https://fiq-plant1-dev-ai-foundry.services.ai.azure.com/api/projects/fiq-plant1-dev-ai-project";
 
     public static IServiceCollection AddFoundryAgentServices(this IServiceCollection services, FoundryConfig config)
     {
         services.AddSingleton(config);
 
+        var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+        {
+            TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
+            ExcludeVisualStudioCredential = true,
+        });
+
         services.AddSingleton(_ => new PersistentAgentsClient(
             config.ProjectEndpoint,
-            new DefaultAzureCredential()));
+            credential));
 
         services.AddSingleton(_ => new SearchClient(
             new Uri(config.AiSearchEndpoint),
