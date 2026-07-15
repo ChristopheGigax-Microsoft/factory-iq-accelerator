@@ -1,6 +1,5 @@
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
-using Azure.Search.Documents;
 using FactoryIQ.Agents.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -28,14 +27,7 @@ public static class ServiceRegistration
             config.ProjectEndpoint,
             credential));
 
-        services.AddSingleton(_ => new SearchClient(
-            new Uri(config.AiSearchEndpoint),
-            "knowledge-base",
-            new DefaultAzureCredential()));
-
         services.AddSingleton<AgentRunner>();
-        services.AddSingleton<KnowledgeSearchService>();
-        services.AddSingleton<FabricDataAgentService>();
 
         services.AddLogging(builder =>
         {
@@ -59,18 +51,10 @@ public static class ServiceRegistration
                 ?? Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_ENDPOINT")
                 ?? DefaultProjectEndpoint,
             ModelDeploymentName = Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME") ?? "gpt-4o",
-            AiSearchEndpoint = GetRequired("AI_SEARCH_ENDPOINT"),
-            StorageAccountEndpoint = Environment.GetEnvironmentVariable("STORAGE_ACCOUNT_ENDPOINT"),
-            DataAgentId = Environment.GetEnvironmentVariable("FABRIC_DATA_AGENT_ID"),
-            WorkspaceId = Environment.GetEnvironmentVariable("FABRIC_WORKSPACE_ID"),
             DeletePersistentAgentOnExit = bool.TryParse(
                 Environment.GetEnvironmentVariable("DELETE_PERSISTENT_AGENT_ON_EXIT"),
                 out var deleteOnExit)
                 && deleteOnExit, // default: false — agents stay persistent in Foundry
         };
     }
-
-    private static string GetRequired(string name) =>
-        Environment.GetEnvironmentVariable(name)
-        ?? throw new InvalidOperationException($"Missing required environment variable: {name}");
 }
