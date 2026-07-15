@@ -177,7 +177,6 @@ public abstract class FoundryAgentBase : IFactoryAgent
         tool.AllowedTools.ToolNames.Add(KnowledgeBaseRetrieveToolName);
 
         tool.Patch.Set("$.project_connection_id"u8, _config.KnowledgeBaseProjectConnectionName);
-        tool.Patch.Set("$.model"u8, _config.ModelDeploymentName);
 
         return tool;
     }
