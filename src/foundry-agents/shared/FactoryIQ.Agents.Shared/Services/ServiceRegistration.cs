@@ -12,6 +12,9 @@ namespace FactoryIQ.Agents.Shared.Services;
 public static class ServiceRegistration
 {
     private const string DefaultProjectEndpoint = "https://fiq-plant1-dev-ai-foundry.services.ai.azure.com/api/projects/fiq-plant1-dev-ai-project";
+    private const string DefaultSearchEndpoint = "https://fiq-plant1-dev-search.search.windows.net";
+    private const string DefaultKnowledgeBaseName = "fiq-plant1-dev-kb";
+    private const string DefaultKnowledgeBaseProjectConnectionName = "foundry-iq-kb-connection";
 
     public static IServiceCollection AddFoundryAgentServices(this IServiceCollection services, FoundryConfig config)
     {
@@ -51,6 +54,12 @@ public static class ServiceRegistration
                 ?? Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_ENDPOINT")
                 ?? DefaultProjectEndpoint,
             ModelDeploymentName = Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME") ?? "gpt-4o",
+            SearchEndpoint = Environment.GetEnvironmentVariable("AI_SEARCH_ENDPOINT")
+                ?? DefaultSearchEndpoint,
+            KnowledgeBaseName = Environment.GetEnvironmentVariable("FOUNDRY_IQ_KNOWLEDGE_BASE_NAME")
+                ?? DefaultKnowledgeBaseName,
+            KnowledgeBaseProjectConnectionName = Environment.GetEnvironmentVariable("FOUNDRY_IQ_PROJECT_CONNECTION_NAME")
+                ?? DefaultKnowledgeBaseProjectConnectionName,
             DeletePersistentAgentOnExit = bool.TryParse(
                 Environment.GetEnvironmentVariable("DELETE_PERSISTENT_AGENT_ON_EXIT"),
                 out var deleteOnExit)

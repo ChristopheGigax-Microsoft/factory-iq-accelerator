@@ -14,6 +14,12 @@ variable "model_deployment_name" {
   default     = "gpt-4o"
 }
 
+variable "embedding_deployment_name" {
+  type        = string
+  description = "Name of the embedding model deployment"
+  default     = "text-embedding-3-large"
+}
+
 variable "location" {
   type        = string
   description = "Azure region"
@@ -27,14 +33,4 @@ variable "resource_group_name" {
 variable "plant_code" {
   type        = string
   description = "Plant code identifier"
-}
-
-variable "ai_search_name" {
-  type        = string
-  description = "AI Search service name"
-}
-
-variable "ai_search_id" {
-  type        = string
-  description = "AI Search service resource ID"
 }

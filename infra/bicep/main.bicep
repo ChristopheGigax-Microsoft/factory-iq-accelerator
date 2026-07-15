@@ -13,6 +13,7 @@ var aiSearchName = '${baseName}-search'
 var storageAccountName = replace('fiq${plantCode}${environment}sa', '-', '')
 var aiProjectName = '${baseName}-ai-project'
 var aiFoundryName = '${baseName}-ai-foundry'
+var foundryIqKnowledgeBaseName = '${baseName}-kb'
 
 module capacity './modules/capacity.bicep' = {
   name: 'capacity'
@@ -47,6 +48,7 @@ module aiFoundry './modules/ai-foundry.bicep' = {
     location: region
     aiSearchName: aiSearch.outputs.name
     aiSearchId: aiSearch.outputs.id
+    knowledgeBaseName: foundryIqKnowledgeBaseName
     plantCode: plantCode
   }
 }
@@ -55,6 +57,7 @@ module rbac './modules/rbac.bicep' = {
   name: 'rbac'
   params: {
     foundryPrincipalId: aiFoundry.outputs.foundryPrincipalId
+    projectPrincipalId: aiFoundry.outputs.projectPrincipalId
     aiSearchId: aiSearch.outputs.id
     aiSearchPrincipalId: aiSearch.outputs.principalId
     storageAccountId: storageAccount.outputs.id
@@ -87,7 +90,9 @@ output connectionContract object = {
   dataAgentId: dataAgentName
   foundryEndpoint: aiFoundry.outputs.foundryEndpoint
   foundryProjectId: aiFoundry.outputs.projectId
+  foundryIqProjectConnectionName: aiFoundry.outputs.foundryIqProjectConnectionName
   aiSearchEndpoint: aiSearch.outputs.endpoint
+  foundryIqKnowledgeBaseName: foundryIqKnowledgeBaseName
   modelDeploymentName: aiFoundry.outputs.modelDeployment
   storageAccountEndpoint: storageAccount.outputs.primaryBlobEndpoint
   generatedAt: deploymentTimestamp

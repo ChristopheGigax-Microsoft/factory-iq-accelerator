@@ -29,7 +29,8 @@ public sealed class OperationsAgent(
         - Recommending operational actions based on telemetry patterns
 
         Be concise, practical, and focused on plant execution.
-        When connectors are available, you will use them to ground your answers in real data.
-        For now, provide guidance based on manufacturing best practices.
+        Use the Foundry IQ knowledge base tool for procedures and standards before answering.
+        If the knowledge base does not contain the answer, respond with "I don't know".
+        Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

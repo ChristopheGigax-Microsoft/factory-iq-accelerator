@@ -14,6 +14,14 @@ output "project_id" {
   value = azapi_resource.project.id
 }
 
+output "project_principal_id" {
+  value = azapi_resource.project.output.identity.principalId
+}
+
 output "model_deployment_name" {
   value = azurerm_cognitive_deployment.gpt4o.name
+}
+
+output "embedding_deployment_name" {
+  value = azurerm_cognitive_deployment.embedding.name
 }

@@ -14,7 +14,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 
 ## Connectors & IQ Sources
 
-> Current status: these connectors are the **target architecture** and are **not wired yet** in code. The agents are currently prompt-based Foundry agents, and connectors will be added incrementally.
+> Current status: Foundry IQ (knowledge base MCP) is wired in the agents. Fabric Data Agent, Work IQ and Web IQ remain the next connectors to be added incrementally.
 
 | Connector | Purpose | Used by |
 |-----------|---------|---------|
@@ -58,6 +58,9 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 export PROJECT_ENDPOINT="https://<foundry>.services.ai.azure.com/api/projects/<project>"
 export MODEL_DEPLOYMENT_NAME="gpt-4o"
 export AZURE_TENANT_ID="<your-tenant-id>"
+export AI_SEARCH_ENDPOINT="https://<search>.search.windows.net"
+export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<search-knowledge-base-name>"
+export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="foundry-iq-kb-connection"
 
 # Optional
 export DELETE_PERSISTENT_AGENT_ON_EXIT="false"  # default: agents stay persistent
@@ -105,4 +108,4 @@ src/foundry-agents/
 
 By default, agents **remain registered** in Azure AI Foundry after the process exits. This allows them to stay visible in the new Foundry portal as **versioned Foundry agents**. Set `DELETE_PERSISTENT_AGENT_ON_EXIT=true` for ephemeral dev/test usage.
 
-When re-launched, agents detect the latest server-managed version by name and reuse it when the definition matches. When the local definition changes, a **new agent version** is published automatically.
+When re-launched, agents detect the latest server-managed version by name and reuse it when the definition matches (including MCP Foundry IQ tool configuration). When the local definition changes, a **new agent version** is published automatically.

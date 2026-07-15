@@ -103,7 +103,13 @@ Sample documents are provided in `src/foundry-agents/knowledge/` for indexing in
 | `quality-standards/` | SPC guides, inspection criteria, defect references | Quality |
 | `lean-templates/` | Kaizen templates, TPM guides, improvement frameworks | Continuous Improvement |
 
-These documents are uploaded to the Storage Account's `knowledge-base` container and indexed by Azure AI Search for RAG-based retrieval.
+The customer uploads these documents to the Storage Account's `knowledge-base` container. Terraform provisions the Azure AI Search knowledge source and knowledge base on top of that container; file upload is intentionally out of scope for IaC. The blob knowledge source uses an Azure OpenAI embedding deployment hosted on the Foundry resource so Azure AI Search can build a vector index for semantic retrieval.
+
+In addition, IaC now creates a **Foundry project connection** (`foundry-iq-kb-connection`) pointing to the knowledge base MCP endpoint:
+
+`https://<search>.search.windows.net/knowledgebases/<kb-name>/mcp?api-version=2026-05-01-preview`
+
+Each Factory IQ agent is registered with an MCP knowledge base tool (`knowledge_base_retrieve`) so responses can be grounded directly on Foundry IQ content.
 
 ## Prerequisites
 
@@ -120,6 +126,8 @@ Set the following environment variables (or use `connection.json` output from Ia
 export AZURE_AI_PROJECT_ENDPOINT="<from connection.json: foundryProjectEndpoint>"
 export MODEL_DEPLOYMENT_NAME="gpt-4o"
 export AI_SEARCH_ENDPOINT="<from connection.json: aiSearchEndpoint>"
+export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<from connection.json: foundryIqKnowledgeBaseName>"
+export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="<from connection.json: foundryIqProjectConnectionName>"
 export STORAGE_ACCOUNT_ENDPOINT="<from connection.json: storageAccountEndpoint>"
 export FABRIC_DATA_AGENT_ID="<from connection.json: dataAgentId>"
 export FABRIC_WORKSPACE_ID="<from connection.json: workspaceId>"
@@ -138,10 +146,10 @@ The IaC automatically provisions these role assignments:
 
 | Principal | Target Resource | Role |
 |-----------|----------------|------|
-| Foundry Project MI | AI Search | Search Index Data Reader |
-| Foundry Project MI | AI Search | Search Service Contributor |
-| Foundry Project MI | Storage Account | Storage Blob Data Reader |
-| Foundry Project MI | Azure OpenAI | Cognitive Services OpenAI User |
+| Foundry resource MI | AI Search | Search Index Data Reader |
+| Foundry resource MI | AI Search | Search Service Contributor |
+| Foundry resource MI | Storage Account | Storage Blob Data Reader |
+| Foundry resource MI | Azure OpenAI | Cognitive Services OpenAI User |
+| Foundry project MI | AI Search | Search Index Data Reader (Foundry IQ MCP retrieval) |
 | AI Search MI | Storage Account | Storage Blob Data Reader (indexer) |
-| Foundry Hub MI | AI Search | Search Index Data Reader |
-| Foundry Hub MI | Storage Account | Storage Blob Data Contributor |
+| AI Search MI | Foundry resource | Cognitive Services User |

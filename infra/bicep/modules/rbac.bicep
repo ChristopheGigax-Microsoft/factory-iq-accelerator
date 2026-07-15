@@ -1,4 +1,5 @@
 param foundryPrincipalId string
+param projectPrincipalId string
 param aiSearchId string
 param aiSearchPrincipalId string
 param storageAccountId string
@@ -26,6 +27,17 @@ resource foundrySearchContributor 'Microsoft.Authorization/roleAssignments@2022-
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchServiceContributor)
     principalId: foundryPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Foundry project MI → AI Search: Search Index Data Reader (Foundry IQ MCP retrieval)
+resource projectSearchReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearchId, projectPrincipalId, searchIndexDataReader)
+  scope: resourceGroup()
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataReader)
+    principalId: projectPrincipalId
     principalType: 'ServicePrincipal'
   }
 }

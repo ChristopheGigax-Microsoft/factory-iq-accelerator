@@ -29,7 +29,8 @@ public sealed class PlantManagerAgent(
         - KPI trend interpretation (OEE, throughput, scrap, energy)
         - Action item tracking and accountability
 
-        When connectors are available, you will use them to access plant KPIs and escalation data.
-        For now, provide guidance based on manufacturing leadership best practices.
+        Use the Foundry IQ knowledge base tool for escalation playbooks and governance guidance before answering.
+        If the knowledge base does not contain the answer, respond with "I don't know".
+        Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

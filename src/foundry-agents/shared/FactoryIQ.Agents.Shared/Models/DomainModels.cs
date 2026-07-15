@@ -7,6 +7,9 @@ public sealed record FoundryConfig
 {
     public required string ProjectEndpoint { get; init; }
     public required string ModelDeploymentName { get; init; }
+    public required string SearchEndpoint { get; init; }
+    public required string KnowledgeBaseName { get; init; }
+    public required string KnowledgeBaseProjectConnectionName { get; init; }
     public bool DeletePersistentAgentOnExit { get; init; }
 }
 

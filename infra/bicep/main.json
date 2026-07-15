@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "10071922290046909750"
+      "templateHash": "8544159574712933478"
     }
   },
   "parameters": {
@@ -38,7 +38,8 @@
     "aiSearchName": "[format('{0}-search', variables('baseName'))]",
     "storageAccountName": "[replace(format('fiq{0}{1}sa', parameters('plantCode'), parameters('environment')), '-', '')]",
     "aiProjectName": "[format('{0}-ai-project', variables('baseName'))]",
-    "aiFoundryName": "[format('{0}-ai-foundry', variables('baseName'))]"
+    "aiFoundryName": "[format('{0}-ai-foundry', variables('baseName'))]",
+    "foundryIqKnowledgeBaseName": "[format('{0}-kb', variables('baseName'))]"
   },
   "resources": [
     {
@@ -314,6 +315,9 @@
           "aiSearchId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.id.value]"
           },
+          "knowledgeBaseName": {
+            "value": "[variables('foundryIqKnowledgeBaseName')]"
+          },
           "plantCode": {
             "value": "[parameters('plantCode')]"
           }
@@ -325,7 +329,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "9015766625679670257"
+              "templateHash": "13471100321458288984"
             }
           },
           "parameters": {
@@ -342,6 +346,9 @@
               "type": "string"
             },
             "aiSearchId": {
+              "type": "string"
+            },
+            "knowledgeBaseName": {
               "type": "string"
             },
             "plantCode": {
@@ -425,6 +432,24 @@
               "dependsOn": [
                 "[resourceId('Microsoft.CognitiveServices/accounts', parameters('foundryName'))]"
               ]
+            },
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-10-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('foundryName'), parameters('projectName'), 'foundry-iq-kb-connection')]",
+              "properties": {
+                "authType": "ProjectManagedIdentity",
+                "category": "RemoteTool",
+                "isSharedToAll": true,
+                "target": "[format('https://{0}.search.windows.net/knowledgebases/{1}/mcp?api-version=2026-05-01-preview', parameters('aiSearchName'), parameters('knowledgeBaseName'))]",
+                "audience": "https://search.azure.com/",
+                "metadata": {
+                  "ApiType": "Azure"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -444,9 +469,17 @@
               "type": "string",
               "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName'))]"
             },
+            "projectPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName')), '2025-06-01', 'full').identity.principalId]"
+            },
             "modelDeployment": {
               "type": "string",
               "value": "[parameters('modelDeploymentName')]"
+            },
+            "foundryIqProjectConnectionName": {
+              "type": "string",
+              "value": "foundry-iq-kb-connection"
             }
           }
         }
@@ -468,6 +501,9 @@
           "foundryPrincipalId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryPrincipalId.value]"
           },
+          "projectPrincipalId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.projectPrincipalId.value]"
+          },
           "aiSearchId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.id.value]"
           },
@@ -485,11 +521,14 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "3025753720293837380"
+              "templateHash": "17257899611453080195"
             }
           },
           "parameters": {
             "foundryPrincipalId": {
+              "type": "string"
+            },
+            "projectPrincipalId": {
               "type": "string"
             },
             "aiSearchId": {
@@ -525,6 +564,16 @@
               "properties": {
                 "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('searchServiceContributor'))]",
                 "principalId": "[parameters('foundryPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('aiSearchId'), parameters('projectPrincipalId'), variables('searchIndexDataReader'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('searchIndexDataReader'))]",
+                "principalId": "[parameters('projectPrincipalId')]",
                 "principalType": "ServicePrincipal"
               }
             },
@@ -572,7 +621,9 @@
         "dataAgentId": "[variables('dataAgentName')]",
         "foundryEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryEndpoint.value]",
         "foundryProjectId": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.projectId.value]",
+        "foundryIqProjectConnectionName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryIqProjectConnectionName.value]",
         "aiSearchEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.endpoint.value]",
+        "foundryIqKnowledgeBaseName": "[variables('foundryIqKnowledgeBaseName')]",
         "modelDeploymentName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.modelDeployment.value]",
         "storageAccountEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'storageAccount'), '2025-04-01').outputs.primaryBlobEndpoint.value]",
         "generatedAt": "[parameters('deploymentTimestamp')]",

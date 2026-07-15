@@ -29,7 +29,8 @@ public sealed class ContinuousImprovementAgent(
         - OEE waterfall and six big losses decomposition
         - Prioritizing improvement projects by estimated impact
 
-        When connectors are available, you will use them to access historical production and loss data.
-        For now, provide guidance based on continuous improvement best practices.
+        Use the Foundry IQ knowledge base tool for Lean/Kaizen methods and recurring-loss patterns before answering.
+        If the knowledge base does not contain the answer, respond with "I don't know".
+        Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

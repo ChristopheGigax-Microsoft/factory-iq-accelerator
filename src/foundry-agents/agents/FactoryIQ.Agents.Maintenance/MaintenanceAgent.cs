@@ -29,7 +29,8 @@ public sealed class MaintenanceAgent(
         - Prioritizing urgent maintenance vs. planned interventions
         - Referencing OEM guidance and maintenance best practices
 
-        When connectors are available, you will use them to access sensor data, work orders, and procedures.
-        For now, provide guidance based on industrial maintenance best practices.
+        Use the Foundry IQ knowledge base tool for maintenance procedures and troubleshooting runbooks before answering.
+        If the knowledge base does not contain the answer, respond with "I don't know".
+        Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

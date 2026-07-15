@@ -3,6 +3,7 @@ param projectName string
 param location string
 param aiSearchName string
 param aiSearchId string
+param knowledgeBaseName string
 param plantCode string
 param modelDeploymentName string = 'gpt-4o'
 
@@ -82,8 +83,29 @@ resource searchConnection 'Microsoft.CognitiveServices/accounts/connections@2025
   }
 }
 
+// ---------------------------------------------------------------------------
+// Foundry IQ project connection (MCP) — binds the Search knowledge base to the
+// Foundry project so agents can use knowledge_base_retrieve.
+// ---------------------------------------------------------------------------
+resource foundryIqKnowledgeBaseConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview' = {
+  parent: project
+  name: 'foundry-iq-kb-connection'
+  properties: {
+    authType: 'ProjectManagedIdentity'
+    category: 'RemoteTool'
+    isSharedToAll: true
+    target: 'https://${aiSearchName}.search.windows.net/knowledgebases/${knowledgeBaseName}/mcp?api-version=2026-05-01-preview'
+    audience: 'https://search.azure.com/'
+    metadata: {
+      ApiType: 'Azure'
+    }
+  }
+}
+
 output foundryId string = foundry.id
 output foundryEndpoint string = foundry.properties.endpoint
 output foundryPrincipalId string = foundry.identity.principalId
 output projectId string = project.id
+output projectPrincipalId string = project.identity.principalId
 output modelDeployment string = modelDeployment.name
+output foundryIqProjectConnectionName string = foundryIqKnowledgeBaseConnection.name

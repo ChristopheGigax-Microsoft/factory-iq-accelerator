@@ -49,6 +49,25 @@ resource "azurerm_cognitive_deployment" "gpt4o" {
 }
 
 # ---------------------------------------------------------------------------
+# Embedding model deployment — used by Azure AI Search for vectorization
+# ---------------------------------------------------------------------------
+resource "azurerm_cognitive_deployment" "embedding" {
+  name                 = var.embedding_deployment_name
+  cognitive_account_id = azurerm_cognitive_account.foundry.id
+
+  model {
+    format  = "OpenAI"
+    name    = "text-embedding-3-large"
+    version = "1"
+  }
+
+  sku {
+    name     = "Standard"
+    capacity = 30
+  }
+}
+
+# ---------------------------------------------------------------------------
 # Foundry Project — child of the Foundry resource (not a Hub)
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "project" {
@@ -68,29 +87,6 @@ resource "azapi_resource" "project" {
     properties = {
       displayName = "Factory IQ Agents"
       description = "Manufacturing agents for plant ${var.plant_code}"
-    }
-  }
-}
-
-# ---------------------------------------------------------------------------
-# Connections (AI Search) — on the Foundry resource, not on a Hub
-# ---------------------------------------------------------------------------
-resource "azapi_resource" "search_connection" {
-  type                      = "Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview"
-  name                      = "ai-search-connection"
-  parent_id                 = azurerm_cognitive_account.foundry.id
-  schema_validation_enabled = false
-
-  body = {
-    properties = {
-      category      = "CognitiveSearch"
-      authType      = "AAD"
-      isSharedToAll = true
-      target        = "https://${var.ai_search_name}.search.windows.net"
-      metadata = {
-        ApiType    = "Azure"
-        ResourceId = var.ai_search_id
-      }
     }
   }
 }

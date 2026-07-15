@@ -28,6 +28,11 @@ provider "azapi" {
   tenant_id       = var.tenant_id
 }
 
+moved {
+  from = module.ai_foundry.azapi_resource.search_connection
+  to   = azapi_resource.search_connection
+}
+
 locals {
   base_name    = "fiq-${var.plant_code}-${var.environment}"
   workspace_id = var.workspace_id
@@ -69,10 +74,16 @@ module "storage_account" {
 }
 
 module "ai_search" {
-  source              = "./modules/ai_search"
-  name                = "${local.base_name}-search"
-  location            = var.region
-  resource_group_name = azurerm_resource_group.this.name
+  source                    = "./modules/ai_search"
+  name                      = "${local.base_name}-search"
+  location                  = var.region
+  resource_group_name       = azurerm_resource_group.this.name
+  knowledge_source_name     = "${local.base_name}-blob-ks"
+  knowledge_base_name       = "${local.base_name}-kb"
+  storage_connection_string = module.storage_account.primary_connection_string
+  foundry_endpoint          = module.ai_foundry.foundry_endpoint
+  embedding_deployment_name = module.ai_foundry.embedding_deployment_name
+  model_deployment_name     = module.ai_foundry.model_deployment_name
 }
 
 module "ai_foundry" {
@@ -82,14 +93,61 @@ module "ai_foundry" {
   location            = var.region
   resource_group_name = azurerm_resource_group.this.name
   plant_code          = var.plant_code
-  ai_search_name      = module.ai_search.name
-  ai_search_id        = module.ai_search.id
 }
 
 module "rbac" {
-  source                  = "./modules/rbac"
-  foundry_principal_id    = module.ai_foundry.foundry_principal_id
-  ai_search_id            = module.ai_search.id
-  ai_search_principal_id  = module.ai_search.principal_id
-  storage_account_id      = module.storage_account.id
+  source                 = "./modules/rbac"
+  foundry_principal_id   = module.ai_foundry.foundry_principal_id
+  project_principal_id   = module.ai_foundry.project_principal_id
+  foundry_resource_id    = module.ai_foundry.foundry_id
+  ai_search_id           = module.ai_search.id
+  ai_search_principal_id = module.ai_search.principal_id
+  storage_account_id     = module.storage_account.id
+}
+
+# ---------------------------------------------------------------------------
+# Connections (AI Search) — on the Foundry resource, not on a Hub
+# ---------------------------------------------------------------------------
+resource "azapi_resource" "search_connection" {
+  type                      = "Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview"
+  name                      = "ai-search-connection"
+  parent_id                 = module.ai_foundry.foundry_id
+  schema_validation_enabled = false
+
+  body = {
+    properties = {
+      category      = "CognitiveSearch"
+      authType      = "AAD"
+      isSharedToAll = true
+      target        = module.ai_search.endpoint
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = module.ai_search.id
+      }
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Foundry IQ project connection (MCP) — attaches Search knowledge base to the
+# Foundry project so agents can use knowledge_base_retrieve.
+# ---------------------------------------------------------------------------
+resource "azapi_resource" "foundry_iq_kb_connection" {
+  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
+  name                      = "foundry-iq-kb-connection"
+  parent_id                 = module.ai_foundry.project_id
+  schema_validation_enabled = false
+
+  body = {
+    properties = {
+      authType      = "ProjectManagedIdentity"
+      category      = "RemoteTool"
+      isSharedToAll = true
+      target        = "${module.ai_search.endpoint}/knowledgebases/${module.ai_search.knowledge_base_name}/mcp?api-version=2026-05-01-preview"
+      audience      = "https://search.azure.com/"
+      metadata = {
+        ApiType = "Azure"
+      }
+    }
+  }
 }

@@ -8,7 +8,7 @@ terraform {
 
 resource "fabric_workspace" "this" {
   display_name = var.name
-  capacity_id = var.capacity_id
+  capacity_id  = var.capacity_id
 }
 
 variable "name" {
@@ -16,7 +16,7 @@ variable "name" {
 }
 
 variable "capacity_id" {
-  type = string
+  type    = string
   default = null
 }
 

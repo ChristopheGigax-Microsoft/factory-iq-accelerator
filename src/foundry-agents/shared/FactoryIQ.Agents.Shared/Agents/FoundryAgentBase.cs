@@ -5,12 +5,17 @@ using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Agents.AI.Foundry;
 using Microsoft.Extensions.Logging;
+using OpenAI.Responses;
 using System.ClientModel;
 
 namespace FactoryIQ.Agents.Shared.Agents;
 
 public abstract class FoundryAgentBase : IFactoryAgent
 {
+    private const string KnowledgeBaseToolLabel = "knowledge-base";
+    private const string KnowledgeBaseRetrieveToolName = "knowledge_base_retrieve";
+    private const string KnowledgeBaseMcpApiVersion = "2026-05-01-preview";
+
     private readonly AIProjectClient _projectClient;
     private readonly AgentRunner _agentRunner;
     private readonly FoundryConfig _config;
@@ -35,6 +40,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
     protected abstract string Description { get; }
 
     protected abstract string Instructions { get; }
+
+    protected virtual bool UsesFoundryIqKnowledgeBase => true;
 
     public async Task RegisterAsync(CancellationToken ct = default)
     {
@@ -103,6 +110,11 @@ public abstract class FoundryAgentBase : IFactoryAgent
             Instructions = Instructions,
         };
 
+        if (UsesFoundryIqKnowledgeBase)
+        {
+            definition.Tools.Add(BuildKnowledgeBaseTool());
+        }
+
         return new ProjectsAgentVersionCreationOptions(definition)
         {
             Description = Description,
@@ -118,7 +130,61 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
         return string.Equals(agentVersion.Description, Description, StringComparison.Ordinal)
             && string.Equals(definition.Model, _config.ModelDeploymentName, StringComparison.Ordinal)
-            && string.Equals(definition.Instructions, Instructions, StringComparison.Ordinal);
+            && string.Equals(definition.Instructions, Instructions, StringComparison.Ordinal)
+            && HasExpectedKnowledgeBaseTool(definition);
+    }
+
+    private bool HasExpectedKnowledgeBaseTool(DeclarativeAgentDefinition definition)
+    {
+        if (!UsesFoundryIqKnowledgeBase)
+        {
+            return true;
+        }
+
+        McpTool? kbTool = definition.Tools
+            .OfType<McpTool>()
+            .FirstOrDefault(tool => string.Equals(tool.ServerLabel, KnowledgeBaseToolLabel, StringComparison.Ordinal));
+        if (kbTool is null)
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(kbTool.ServerUri?.ToString(), UriKind.Absolute, out Uri? existingServerUri)
+            || !Uri.Equals(existingServerUri, BuildKnowledgeBaseMcpUri()))
+        {
+            return false;
+        }
+
+        if (kbTool.AllowedTools?.ToolNames is null
+            || !kbTool.AllowedTools.ToolNames.Contains(KnowledgeBaseRetrieveToolName, StringComparer.Ordinal))
+        {
+            return false;
+        }
+
+        // URI and allowed tools are sufficient to detect version drift.
+        // project_connection_id is set at creation time via JsonPatch but cannot be read back (write-only path).
+        return true;
+    }
+
+    private McpTool BuildKnowledgeBaseTool()
+    {
+        McpTool tool = ResponseTool.CreateMcpTool(
+            serverLabel: KnowledgeBaseToolLabel,
+            serverUri: BuildKnowledgeBaseMcpUri(),
+            toolCallApprovalPolicy: GlobalMcpToolCallApprovalPolicy.NeverRequireApproval);
+
+        tool.AllowedTools = new McpToolFilter();
+        tool.AllowedTools.ToolNames.Add(KnowledgeBaseRetrieveToolName);
+
+        tool.Patch.Set("$.project_connection_id"u8, _config.KnowledgeBaseProjectConnectionName);
+        tool.Patch.Set("$.model"u8, _config.ModelDeploymentName);
+
+        return tool;
+    }
+
+    private Uri BuildKnowledgeBaseMcpUri()
+    {
+        return new Uri($"{_config.SearchEndpoint.TrimEnd('/')}/knowledgebases/{_config.KnowledgeBaseName}/mcp?api-version={KnowledgeBaseMcpApiVersion}");
     }
 
     private async Task<ProjectsAgentRecord?> FindExistingAgentAsync(CancellationToken ct)

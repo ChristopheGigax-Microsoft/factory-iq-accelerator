@@ -29,7 +29,8 @@ public sealed class QualityAgent(
         - Containment and corrective action recommendations
         - Quality standards and specification compliance
 
-        When connectors are available, you will use them to access inspection data and quality standards.
-        For now, provide guidance based on manufacturing quality best practices.
+        Use the Foundry IQ knowledge base tool for quality standards and batch references before answering.
+        If the knowledge base does not contain the answer, respond with "I don't know".
+        Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }
