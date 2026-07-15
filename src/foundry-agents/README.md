@@ -1,6 +1,6 @@
 # Factory IQ — Foundry Agents
 
-AI agents built with the **Azure.AI.Agents.Persistent** SDK (.NET 10) and deployed as persistent assistants in Azure AI Foundry.
+AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (.NET 10), targeting the **new Foundry Agent Service** and the **new Azure AI Foundry portal**.
 
 ## Agents
 
@@ -14,6 +14,8 @@ AI agents built with the **Azure.AI.Agents.Persistent** SDK (.NET 10) and deploy
 
 ## Connectors & IQ Sources
 
+> Current status: these connectors are the **target architecture** and are **not wired yet** in code. The agents are currently prompt-based Foundry agents, and connectors will be added incrementally.
+
 | Connector | Purpose | Used by |
 |-----------|---------|---------|
 | **Fabric Data Agent** | Queries live operational data from Microsoft Fabric (KQL, SQL) — OEE, alarms, work orders, sensor readings | All agents |
@@ -26,31 +28,20 @@ AI agents built with the **Azure.AI.Agents.Persistent** SDK (.NET 10) and deploy
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Azure AI Foundry (v2)                     │
-│  ┌───────────┐  ┌───────────┐  ┌───────────┐               │
-│  │ Operations│  │Maintenance│  │  Quality  │  ...           │
-│  │   Agent   │  │   Agent   │  │   Agent   │               │
-│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘               │
-│        │               │               │                    │
-│        ▼               ▼               ▼                    │
-│  ┌──────────────────────────────────────────┐               │
-│  │        Function Tool Dispatch            │               │
-│  └──────┬──────────────┬───────────┬────────┘               │
-│         │              │           │                        │
-└─────────┼──────────────┼───────────┼────────────────────────┘
-          │              │           │
-          ▼              ▼           ▼
-  ┌──────────────┐ ┌──────────┐ ┌──────────┐
-  │ Fabric Data  │ │ AI Search│ │ Web IQ / │
-  │    Agent     │ │(Foundry  │ │ Work IQ  │
-  │  (KQL/SQL)   │ │   IQ)    │ │          │
-  └──────────────┘ └──────────┘ └──────────┘
-          │
-          ▼
-  ┌──────────────┐
-  │  Microsoft   │
-  │    Fabric    │
-  │  Lakehouse   │
-  └──────────────┘
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │     Versioned Prompt Agents (new Foundry portal)     │  │
+│  │ Operations • Maintenance • Quality • Plant Manager   │  │
+│  │ Continuous Improvement                               │  │
+│  └───────────────────────────┬───────────────────────────┘  │
+│                              │                              │
+└──────────────────────────────┼──────────────────────────────┘
+                               │
+                               ▼
+                 ┌─────────────────────────────┐
+                 │     Future connector layer  │
+                 │ Fabric Data • Foundry IQ    │
+                 │ Work IQ • Web IQ            │
+                 └─────────────────────────────┘
 ```
 
 ## Getting Started
@@ -65,14 +56,10 @@ AI agents built with the **Azure.AI.Agents.Persistent** SDK (.NET 10) and deploy
 
 ```bash
 export PROJECT_ENDPOINT="https://<foundry>.services.ai.azure.com/api/projects/<project>"
-export AI_SEARCH_ENDPOINT="https://<search>.search.windows.net"
-export STORAGE_ACCOUNT_ENDPOINT="https://<storage>.blob.core.windows.net/"
 export MODEL_DEPLOYMENT_NAME="gpt-4o"
 export AZURE_TENANT_ID="<your-tenant-id>"
 
 # Optional
-export FABRIC_DATA_AGENT_ID="<fabric-data-agent-guid>"
-export FABRIC_WORKSPACE_ID="<fabric-workspace-guid>"
 export DELETE_PERSISTENT_AGENT_ON_EXIT="false"  # default: agents stay persistent
 ```
 
@@ -99,8 +86,8 @@ src/foundry-agents/
 ├── FactoryIQ.Agents.slnx          # Solution file
 ├── shared/
 │   └── FactoryIQ.Agents.Shared/   # Base classes, DI, services
-│       ├── Agents/                 # PersistentAgentBase, AgentConsoleHost, AgentRunner
-│       ├── Services/               # FabricDataAgent, KnowledgeSearch, ServiceRegistration
+│       ├── Agents/                 # FoundryAgentBase, AgentConsoleHost
+│       ├── Services/               # AIProjectClient registration, AgentRunner
 │       └── Models/                 # FoundryConfig, domain models
 ├── agents/
 │   ├── FactoryIQ.Agents.Operations/
@@ -116,6 +103,6 @@ src/foundry-agents/
 
 ## Persistence
 
-By default, agents **remain registered** in Azure AI Foundry after the process exits. This allows them to be visible and testable from the Foundry portal. Set `DELETE_PERSISTENT_AGENT_ON_EXIT=true` for ephemeral dev/test usage.
+By default, agents **remain registered** in Azure AI Foundry after the process exits. This allows them to stay visible in the new Foundry portal as **versioned Foundry agents**. Set `DELETE_PERSISTENT_AGENT_ON_EXIT=true` for ephemeral dev/test usage.
 
-When re-launched, agents detect their existing registration by name and reuse it (no duplicates).
+When re-launched, agents detect the latest server-managed version by name and reuse it when the definition matches. When the local definition changes, a **new agent version** is published automatically.

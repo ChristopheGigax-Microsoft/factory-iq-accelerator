@@ -1,5 +1,4 @@
-using Azure.AI.Agents.Persistent;
-using FactoryIQ.Agents.ContinuousImprovement.Tools;
+using Azure.AI.Projects;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
@@ -8,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace FactoryIQ.Agents.ContinuousImprovement;
 
 public sealed class ContinuousImprovementAgent(
-    PersistentAgentsClient client,
+    AIProjectClient projectClient,
     AgentRunner agentRunner,
-    ContinuousImprovementTools tools,
     FoundryConfig config,
     ILogger<ContinuousImprovementAgent> logger)
-    : PersistentAgentBase<ContinuousImprovementTools>(client, agentRunner, tools, config, logger)
+    : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ Continuous Improvement Agent";
+    public override string Name => "FactoryIQ-Continuous-Improvement-Agent";
 
     protected override string Description =>
         "Finds recurring losses and improvement opportunities using plant history and lean knowledge.";

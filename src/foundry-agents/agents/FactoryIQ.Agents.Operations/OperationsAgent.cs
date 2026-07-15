@@ -1,5 +1,4 @@
-using Azure.AI.Agents.Persistent;
-using FactoryIQ.Agents.Operations.Tools;
+using Azure.AI.Projects;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
@@ -8,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace FactoryIQ.Agents.Operations;
 
 public sealed class OperationsAgent(
-    PersistentAgentsClient client,
+    AIProjectClient projectClient,
     AgentRunner agentRunner,
-    OperationsTools tools,
     FoundryConfig config,
     ILogger<OperationsAgent> logger)
-    : PersistentAgentBase<OperationsTools>(client, agentRunner, tools, config, logger)
+    : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ Operations Agent";
+    public override string Name => "FactoryIQ-Operations-Agent";
 
     protected override string Description =>
         "Monitors plant telemetry, OEE, and operating procedures for front-line operations support.";

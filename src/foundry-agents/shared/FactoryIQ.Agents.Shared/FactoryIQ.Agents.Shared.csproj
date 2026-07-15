@@ -5,12 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>FactoryIQ.Agents.Shared</RootNamespace>
-    <NoWarn>$(NoWarn);CA2252</NoWarn>
+    <NoWarn>$(NoWarn);CA2252;OPENAI001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.AI.Agents.Persistent" Version="1.2.0-beta.10" />
-    <PackageReference Include="Azure.Identity" Version="1.17.1" />
+    <PackageReference Include="Azure.AI.Projects" Version="2.1.0-beta.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry" Version="1.6.1-preview.260514.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />

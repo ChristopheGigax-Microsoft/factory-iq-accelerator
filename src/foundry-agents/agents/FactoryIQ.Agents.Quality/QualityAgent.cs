@@ -1,5 +1,4 @@
-using Azure.AI.Agents.Persistent;
-using FactoryIQ.Agents.Quality.Tools;
+using Azure.AI.Projects;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
@@ -8,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace FactoryIQ.Agents.Quality;
 
 public sealed class QualityAgent(
-    PersistentAgentsClient client,
+    AIProjectClient projectClient,
     AgentRunner agentRunner,
-    QualityTools tools,
     FoundryConfig config,
     ILogger<QualityAgent> logger)
-    : PersistentAgentBase<QualityTools>(client, agentRunner, tools, config, logger)
+    : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ Quality Agent";
+    public override string Name => "FactoryIQ-Quality-Agent";
 
     protected override string Description =>
         "Investigates quality data, quality standards, and batch performance issues.";

@@ -1,5 +1,4 @@
-using Azure.AI.Agents.Persistent;
-using FactoryIQ.Agents.Maintenance.Tools;
+using Azure.AI.Projects;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
@@ -8,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace FactoryIQ.Agents.Maintenance;
 
 public sealed class MaintenanceAgent(
-    PersistentAgentsClient client,
+    AIProjectClient projectClient,
     AgentRunner agentRunner,
-    MaintenanceTools tools,
     FoundryConfig config,
     ILogger<MaintenanceAgent> logger)
-    : PersistentAgentBase<MaintenanceTools>(client, agentRunner, tools, config, logger)
+    : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ Maintenance Agent";
+    public override string Name => "FactoryIQ-Maintenance-Agent";
 
     protected override string Description =>
         "Analyzes alarms, sensor data, maintenance history, and maintenance runbooks.";

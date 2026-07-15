@@ -1,5 +1,4 @@
-using Azure.AI.Agents.Persistent;
-using FactoryIQ.Agents.PlantManager.Tools;
+using Azure.AI.Projects;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
@@ -8,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace FactoryIQ.Agents.PlantManager;
 
 public sealed class PlantManagerAgent(
-    PersistentAgentsClient client,
+    AIProjectClient projectClient,
     AgentRunner agentRunner,
-    PlantManagerTools tools,
     FoundryConfig config,
     ILogger<PlantManagerAgent> logger)
-    : PersistentAgentBase<PlantManagerTools>(client, agentRunner, tools, config, logger)
+    : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ Plant Manager Agent";
+    public override string Name => "FactoryIQ-Plant-Manager-Agent";
 
     protected override string Description =>
         "Summarizes plant KPIs, escalations, and open action items for plant leadership.";

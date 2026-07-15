@@ -1,5 +1,4 @@
 using FactoryIQ.Agents.Operations;
-using FactoryIQ.Agents.Operations.Tools;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.Logging;
 var config = ServiceRegistration.LoadConfigFromEnvironment();
 var services = new ServiceCollection();
 services.AddFoundryAgentServices(config);
-services.AddSingleton<OperationsTools>();
 services.AddSingleton<OperationsAgent>();
 
 using var provider = services.BuildServiceProvider();

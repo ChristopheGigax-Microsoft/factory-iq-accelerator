@@ -6,7 +6,7 @@ namespace FactoryIQ.Agents.Shared.Agents;
 public static class AgentConsoleHost
 {
     public static async Task RunAsync(
-        IPersistentFactoryAgent agent,
+        IFactoryAgent agent,
         FoundryConfig config,
         ILogger logger,
         string[] args,
@@ -61,7 +61,7 @@ public static class AgentConsoleHost
             }
             else
             {
-                logger.LogInformation("Leaving persistent agent {AgentName} registered in Foundry.", agent.Name);
+                logger.LogInformation("Leaving Foundry agent {AgentName} registered in Foundry Agent Service.", agent.Name);
             }
         }
     }

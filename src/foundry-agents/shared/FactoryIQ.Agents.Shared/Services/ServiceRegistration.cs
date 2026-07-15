@@ -1,4 +1,4 @@
-using Azure.AI.Agents.Persistent;
+using Azure.AI.Projects;
 using Azure.Identity;
 using FactoryIQ.Agents.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +23,8 @@ public static class ServiceRegistration
             ExcludeVisualStudioCredential = true,
         });
 
-        services.AddSingleton(_ => new PersistentAgentsClient(
-            config.ProjectEndpoint,
+        services.AddSingleton(_ => new AIProjectClient(
+            new Uri(config.ProjectEndpoint),
             credential));
 
         services.AddSingleton<AgentRunner>();
