@@ -29,8 +29,9 @@ public sealed class QualityAgent(
         - Containment and corrective action recommendations
         - Quality standards and specification compliance
 
-        Use the Foundry IQ knowledge base tool for quality standards and batch references before answering.
-        If the knowledge base does not contain the answer, respond with "I don't know".
+        For scrap, defects, process drift, and batch data questions, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
+        Use the Foundry IQ knowledge base tool for quality standards and batch references.
+        If neither source contains the answer, respond with "I don't know".
         Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

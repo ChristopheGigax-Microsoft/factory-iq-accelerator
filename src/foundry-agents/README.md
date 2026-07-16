@@ -14,7 +14,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 
 ## Connectors & IQ Sources
 
-> Current status: Foundry IQ (knowledge base MCP) is wired in the agents. Fabric Data Agent, Work IQ and Web IQ remain the next connectors to be added incrementally.
+> Current status: Foundry IQ (knowledge base MCP) and Fabric OneLake Catalog (Fabric Data Agent via Fabric IQ) are wired in the agents. Work IQ and Web IQ remain the next connectors to be added incrementally.
 
 | Connector | Purpose | Used by |
 |-----------|---------|---------|
@@ -38,7 +38,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
                                │
                                ▼
                  ┌─────────────────────────────┐
-                 │     Future connector layer  │
+                 │      Connector layer        │
                  │ Fabric Data • Foundry IQ    │
                  │ Work IQ • Web IQ            │
                  └─────────────────────────────┘
@@ -51,6 +51,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 - .NET 10 SDK
 - Azure CLI (`az login` to the correct tenant)
 - Deployed infrastructure (see `infra/terraform/` or `infra/bicep/`)
+- Published Fabric Data Agent (required for Fabric IQ MCP tools to resolve)
 
 ### Environment Variables
 
@@ -61,10 +62,28 @@ export AZURE_TENANT_ID="<your-tenant-id>"
 export AI_SEARCH_ENDPOINT="https://<search>.search.windows.net"
 export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<search-knowledge-base-name>"
 export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="foundry-iq-kb-connection"
+export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="fabric-iq-data-agent-connection"
 
 # Optional
 export DELETE_PERSISTENT_AGENT_ON_EXIT="false"  # default: agents stay persistent
+export USE_MANAGED_IDENTITY="false"             # default local run: false; set true in Azure-hosted runtime
 ```
+
+`FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME` can be either the project connection **name** or its full ARM **resource ID**.
+
+### Fabric Data Agent readiness check
+
+Before running agents that use Fabric IQ, verify MCP tool discovery works on the Data Agent endpoint:
+
+```bash
+TOKEN=$(az account get-access-token --resource https://api.fabric.microsoft.com --query accessToken -o tsv)
+curl -X POST "<fabric_data_agent_mcp_target>" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
+If `tools/list` fails with HTTP 404, publish/re-publish the Fabric Data Agent before retesting Foundry agents.
 
 ### Run an Agent
 

@@ -2,6 +2,12 @@ param plantCode string
 param environment string
 param region string
 param capacitySku string = 'F2'
+@description('Fabric workspace GUID for Fabric IQ Data Agent connection (optional for Bicep flow).')
+param fabricWorkspaceId string = ''
+@description('Fabric Data Agent GUID for Fabric IQ Data Agent connection (optional for Bicep flow).')
+param fabricDataAgentId string = ''
+@description('Optional full Fabric Data Agent MCP endpoint URL for Fabric IQ connection. If empty, Bicep uses the global api.fabric.microsoft.com endpoint.')
+param fabricDataAgentMcpTarget string = ''
 
 var baseName = 'fiq-${plantCode}-${environment}'
 var workspaceName = '${baseName}-ws'
@@ -49,6 +55,9 @@ module aiFoundry './modules/ai-foundry.bicep' = {
     aiSearchName: aiSearch.outputs.name
     aiSearchId: aiSearch.outputs.id
     knowledgeBaseName: foundryIqKnowledgeBaseName
+    fabricWorkspaceId: fabricWorkspaceId
+    fabricDataAgentId: fabricDataAgentId
+    fabricDataAgentMcpTarget: fabricDataAgentMcpTarget
     plantCode: plantCode
   }
 }
@@ -91,6 +100,7 @@ output connectionContract object = {
   foundryEndpoint: aiFoundry.outputs.foundryEndpoint
   foundryProjectId: aiFoundry.outputs.projectId
   foundryIqProjectConnectionName: aiFoundry.outputs.foundryIqProjectConnectionName
+  foundryFabricProjectConnectionName: aiFoundry.outputs.foundryFabricProjectConnectionName
   aiSearchEndpoint: aiSearch.outputs.endpoint
   foundryIqKnowledgeBaseName: foundryIqKnowledgeBaseName
   modelDeploymentName: aiFoundry.outputs.modelDeployment

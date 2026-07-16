@@ -45,7 +45,7 @@ There are **two primary integration paths** between Microsoft Fabric and Azure A
 
 ### 1. Fabric Data Agent (Connector)
 
-The Fabric Data Agent is already provisioned in the Fabric workspace (via IaC). Foundry agents call it as a tool to run natural-language queries that are translated into KQL against the Eventhouse. Uses On-Behalf-Of (OBO) authorization.
+The Fabric Data Agent is already provisioned in the Fabric workspace (via IaC). Foundry agents call it through **Fabric IQ (OneLake Catalog)** to run natural-language queries that are translated into KQL against the Eventhouse. This path uses On-Behalf-Of (OBO) authorization.
 
 ### 2. Fabric IQ (Semantic Layer)
 
@@ -111,10 +111,23 @@ In addition, IaC now creates a **Foundry project connection** (`foundry-iq-kb-co
 
 Each Factory IQ agent is registered with an MCP knowledge base tool (`knowledge_base_retrieve`) so responses can be grounded directly on Foundry IQ content.
 
+IaC also creates a **Fabric IQ project connection** (`fabric-iq-data-agent-connection`) in the same shape as the Foundry portal connector:
+
+- `category: RemoteTool`
+- `authType: UserEntraToken`
+- `audience: https://api.fabric.microsoft.com`
+- `metadata.type: fabric_iq_preview`
+- `target: <Fabric Data Agent MCP endpoint>`
+
+For tenants requiring a region-scoped Fabric MCP endpoint, Terraform exposes `fabric_data_agent_mcp_target` to pass the exact portal-discovered URL.
+
+Each Factory IQ agent is registered with the **Fabric OneLake Catalog** tool (`fabric_iq_preview`) bound to this connection so agents can query live Fabric data.
+
 ## Prerequisites
 
 - Azure subscription with Owner access
 - Deployed Factory IQ foundation (Fabric workspace, Eventhouse, Data Agent)
+- Fabric Data Agent **published** in Fabric before Foundry agent execution
 - .NET 10 SDK
 - Azure CLI authenticated
 
@@ -128,10 +141,25 @@ export MODEL_DEPLOYMENT_NAME="gpt-4o"
 export AI_SEARCH_ENDPOINT="<from connection.json: aiSearchEndpoint>"
 export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<from connection.json: foundryIqKnowledgeBaseName>"
 export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="<from connection.json: foundryIqProjectConnectionName>"
+export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="<from connection.json: foundryFabricProjectConnectionName>"
 export STORAGE_ACCOUNT_ENDPOINT="<from connection.json: storageAccountEndpoint>"
 export FABRIC_DATA_AGENT_ID="<from connection.json: dataAgentId>"
 export FABRIC_WORKSPACE_ID="<from connection.json: workspaceId>"
 ```
+
+> Fabric OAuth/admin consent remains a manual governance step: tenant admin grants consent once, then end users complete first-use consent if prompted.
+
+Before running Foundry agents, validate the published Data Agent MCP endpoint can enumerate tools:
+
+```bash
+TOKEN=$(az account get-access-token --resource https://api.fabric.microsoft.com --query accessToken -o tsv)
+curl -X POST "<fabric_data_agent_mcp_target>" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+```
+
+If `tools/list` returns 404, the Data Agent is not fully published/ready yet for MCP tool execution.
 
 ## Running an Agent
 

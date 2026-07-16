@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.41.2.15936",
-      "templateHash": "8544159574712933478"
+      "templateHash": "5489128222267872860"
     }
   },
   "parameters": {
@@ -21,6 +21,27 @@
     "capacitySku": {
       "type": "string",
       "defaultValue": "F2"
+    },
+    "fabricWorkspaceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Fabric workspace GUID for Fabric IQ Data Agent connection (optional for Bicep flow)."
+      }
+    },
+    "fabricDataAgentId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Fabric Data Agent GUID for Fabric IQ Data Agent connection (optional for Bicep flow)."
+      }
+    },
+    "fabricDataAgentMcpTarget": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional full Fabric Data Agent MCP endpoint URL for Fabric IQ connection. If empty, Bicep uses the global api.fabric.microsoft.com endpoint."
+      }
     },
     "deploymentTimestamp": {
       "type": "string",
@@ -318,6 +339,15 @@
           "knowledgeBaseName": {
             "value": "[variables('foundryIqKnowledgeBaseName')]"
           },
+          "fabricWorkspaceId": {
+            "value": "[parameters('fabricWorkspaceId')]"
+          },
+          "fabricDataAgentId": {
+            "value": "[parameters('fabricDataAgentId')]"
+          },
+          "fabricDataAgentMcpTarget": {
+            "value": "[parameters('fabricDataAgentMcpTarget')]"
+          },
           "plantCode": {
             "value": "[parameters('plantCode')]"
           }
@@ -329,7 +359,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.41.2.15936",
-              "templateHash": "13471100321458288984"
+              "templateHash": "216562266121308685"
             }
           },
           "parameters": {
@@ -351,6 +381,18 @@
             "knowledgeBaseName": {
               "type": "string"
             },
+            "fabricWorkspaceId": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "fabricDataAgentId": {
+              "type": "string",
+              "defaultValue": ""
+            },
+            "fabricDataAgentMcpTarget": {
+              "type": "string",
+              "defaultValue": ""
+            },
             "plantCode": {
               "type": "string"
             },
@@ -358,6 +400,9 @@
               "type": "string",
               "defaultValue": "gpt-4o"
             }
+          },
+          "variables": {
+            "resolvedFabricDataAgentMcpTarget": "[if(not(empty(parameters('fabricDataAgentMcpTarget'))), parameters('fabricDataAgentMcpTarget'), format('https://api.fabric.microsoft.com/v1/mcp/workspaces/{0}/dataagents/{1}/agent', parameters('fabricWorkspaceId'), parameters('fabricDataAgentId')))]"
           },
           "resources": [
             {
@@ -450,6 +495,25 @@
               "dependsOn": [
                 "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName'))]"
               ]
+            },
+            {
+              "condition": "[and(not(empty(parameters('fabricWorkspaceId'))), not(empty(parameters('fabricDataAgentId'))))]",
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-10-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('foundryName'), parameters('projectName'), 'fabric-iq-data-agent-connection')]",
+              "properties": {
+                "authType": "UserEntraToken",
+                "category": "RemoteTool",
+                "isSharedToAll": false,
+                "target": "[variables('resolvedFabricDataAgentMcpTarget')]",
+                "audience": "https://api.fabric.microsoft.com",
+                "metadata": {
+                  "type": "fabric_iq_preview"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('foundryName'), parameters('projectName'))]"
+              ]
             }
           ],
           "outputs": {
@@ -480,6 +544,10 @@
             "foundryIqProjectConnectionName": {
               "type": "string",
               "value": "foundry-iq-kb-connection"
+            },
+            "foundryFabricProjectConnectionName": {
+              "type": "string",
+              "value": "[if(and(not(empty(parameters('fabricWorkspaceId'))), not(empty(parameters('fabricDataAgentId')))), 'fabric-iq-data-agent-connection', '')]"
             }
           }
         }
@@ -622,6 +690,7 @@
         "foundryEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryEndpoint.value]",
         "foundryProjectId": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.projectId.value]",
         "foundryIqProjectConnectionName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryIqProjectConnectionName.value]",
+        "foundryFabricProjectConnectionName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.foundryFabricProjectConnectionName.value]",
         "aiSearchEndpoint": "[reference(resourceId('Microsoft.Resources/deployments', 'aiSearch'), '2025-04-01').outputs.endpoint.value]",
         "foundryIqKnowledgeBaseName": "[variables('foundryIqKnowledgeBaseName')]",
         "modelDeploymentName": "[reference(resourceId('Microsoft.Resources/deployments', 'aiFoundry'), '2025-04-01').outputs.modelDeployment.value]",

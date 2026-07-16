@@ -29,8 +29,9 @@ public sealed class MaintenanceAgent(
         - Prioritizing urgent maintenance vs. planned interventions
         - Referencing OEM guidance and maintenance best practices
 
-        Use the Foundry IQ knowledge base tool for maintenance procedures and troubleshooting runbooks before answering.
-        If the knowledge base does not contain the answer, respond with "I don't know".
+        For alarms, asset history, and sensor trends, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
+        Use the Foundry IQ knowledge base tool for maintenance procedures and troubleshooting runbooks.
+        If neither source contains the answer, respond with "I don't know".
         Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

@@ -4,8 +4,14 @@ param location string
 param aiSearchName string
 param aiSearchId string
 param knowledgeBaseName string
+param fabricWorkspaceId string = ''
+param fabricDataAgentId string = ''
+param fabricDataAgentMcpTarget string = ''
 param plantCode string
 param modelDeploymentName string = 'gpt-4o'
+var resolvedFabricDataAgentMcpTarget = !empty(fabricDataAgentMcpTarget)
+  ? fabricDataAgentMcpTarget
+  : 'https://api.fabric.microsoft.com/v1/mcp/workspaces/${fabricWorkspaceId}/dataagents/${fabricDataAgentId}/agent'
 
 // ---------------------------------------------------------------------------
 // AI Foundry resource (CognitiveServices/accounts with project management)
@@ -102,6 +108,25 @@ resource foundryIqKnowledgeBaseConnection 'Microsoft.CognitiveServices/accounts/
   }
 }
 
+// ---------------------------------------------------------------------------
+// Fabric IQ (OneLake Catalog) project connection — points to Fabric Data Agent
+// MCP endpoint and uses end-user Entra token (OBO).
+// ---------------------------------------------------------------------------
+resource fabricIqDataAgentConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview' = if (!empty(fabricWorkspaceId) && !empty(fabricDataAgentId)) {
+  parent: project
+  name: 'fabric-iq-data-agent-connection'
+  properties: {
+    authType: 'UserEntraToken'
+    category: 'RemoteTool'
+    isSharedToAll: false
+    target: resolvedFabricDataAgentMcpTarget
+    audience: 'https://api.fabric.microsoft.com'
+    metadata: {
+      type: 'fabric_iq_preview'
+    }
+  }
+}
+
 output foundryId string = foundry.id
 output foundryEndpoint string = foundry.properties.endpoint
 output foundryPrincipalId string = foundry.identity.principalId
@@ -109,3 +134,6 @@ output projectId string = project.id
 output projectPrincipalId string = project.identity.principalId
 output modelDeployment string = modelDeployment.name
 output foundryIqProjectConnectionName string = foundryIqKnowledgeBaseConnection.name
+output foundryFabricProjectConnectionName string = !empty(fabricWorkspaceId) && !empty(fabricDataAgentId)
+  ? fabricIqDataAgentConnection.name
+  : ''

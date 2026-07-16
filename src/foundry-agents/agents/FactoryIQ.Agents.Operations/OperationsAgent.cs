@@ -29,8 +29,9 @@ public sealed class OperationsAgent(
         - Recommending operational actions based on telemetry patterns
 
         Be concise, practical, and focused on plant execution.
-        Use the Foundry IQ knowledge base tool for procedures and standards before answering.
-        If the knowledge base does not contain the answer, respond with "I don't know".
+        For live KPI/telemetry questions, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
+        Use the Foundry IQ knowledge base tool for procedures and standards.
+        If neither source contains the answer, respond with "I don't know".
         Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

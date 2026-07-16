@@ -43,3 +43,14 @@ variable "workspace_id" {
   type        = string
   description = "Existing Fabric workspace ID"
 }
+
+variable "fabric_data_agent_id" {
+  type        = string
+  description = "Existing Fabric Data Agent ID used by the Foundry Fabric IQ connection"
+}
+
+variable "fabric_data_agent_mcp_target" {
+  type        = string
+  description = "Optional full Fabric Data Agent MCP endpoint URL. If empty, Terraform uses the global api.fabric.microsoft.com endpoint."
+  default     = ""
+}

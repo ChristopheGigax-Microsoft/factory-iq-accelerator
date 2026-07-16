@@ -29,8 +29,9 @@ public sealed class ContinuousImprovementAgent(
         - OEE waterfall and six big losses decomposition
         - Prioritizing improvement projects by estimated impact
 
-        Use the Foundry IQ knowledge base tool for Lean/Kaizen methods and recurring-loss patterns before answering.
-        If the knowledge base does not contain the answer, respond with "I don't know".
+        For recurring-loss analysis and historical performance patterns, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
+        Use the Foundry IQ knowledge base tool for Lean/Kaizen methods and recurring-loss patterns.
+        If neither source contains the answer, respond with "I don't know".
         Include citations from retrieved sources whenever you use knowledge base content.
         """;
 }

@@ -34,8 +34,9 @@ moved {
 }
 
 locals {
-  base_name    = "fiq-${var.plant_code}-${var.environment}"
-  workspace_id = var.workspace_id
+  base_name                     = "fiq-${var.plant_code}-${var.environment}"
+  workspace_id                  = var.workspace_id
+  fabric_data_agent_mcp_target  = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
 }
 
 resource "azurerm_resource_group" "this" {
@@ -147,6 +148,30 @@ resource "azapi_resource" "foundry_iq_kb_connection" {
       audience      = "https://search.azure.com/"
       metadata = {
         ApiType = "Azure"
+      }
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Fabric IQ (OneLake Catalog) project connection — points to the Fabric
+# Data Agent MCP endpoint so declarative agents can use fabric_iq_preview.
+# ---------------------------------------------------------------------------
+resource "azapi_resource" "fabric_iq_data_agent_connection" {
+  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
+  name                      = "fabric-iq-data-agent-connection"
+  parent_id                 = module.ai_foundry.project_id
+  schema_validation_enabled = false
+
+  body = {
+    properties = {
+      authType      = "UserEntraToken"
+      category      = "RemoteTool"
+      isSharedToAll = false
+      target        = local.fabric_data_agent_mcp_target
+      audience      = "https://api.fabric.microsoft.com"
+      metadata = {
+        type = "fabric_iq_preview"
       }
     }
   }

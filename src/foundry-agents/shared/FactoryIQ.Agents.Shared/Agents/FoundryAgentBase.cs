@@ -42,6 +42,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
     protected abstract string Instructions { get; }
 
     protected virtual bool UsesFoundryIqKnowledgeBase => true;
+    protected virtual bool UsesFabricDataAgentTool => true;
 
     public async Task RegisterAsync(CancellationToken ct = default)
     {
@@ -50,11 +51,19 @@ public abstract class FoundryAgentBase : IFactoryAgent
             return;
         }
 
+        string? fabricDataAgentProjectConnectionId = null;
+        if (UsesFabricDataAgentTool)
+        {
+            fabricDataAgentProjectConnectionId = await ResolveProjectConnectionIdAsync(
+                _config.FabricDataAgentProjectConnectionName,
+                ct);
+        }
+
         ProjectsAgentRecord? existingAgent = await FindExistingAgentAsync(ct);
         if (existingAgent is not null)
         {
             ProjectsAgentVersion latestVersion = existingAgent.GetLatestVersion();
-            if (HasDesiredDefinition(latestVersion))
+            if (HasDesiredDefinition(latestVersion, fabricDataAgentProjectConnectionId))
             {
                 _registeredVersion = latestVersion;
                 _registeredAgent = _projectClient.AsAIAgent(existingAgent);
@@ -69,7 +78,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
         ClientResult<ProjectsAgentVersion> createdVersion = await _projectClient.AgentAdministrationClient.CreateAgentVersionAsync(
             agentName: Name,
-            options: BuildAgentVersionOptions(),
+            options: BuildAgentVersionOptions(fabricDataAgentProjectConnectionId),
             cancellationToken: ct);
 
         _registeredVersion = createdVersion.Value;
@@ -103,7 +112,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
         _registeredVersion = null;
     }
 
-    private ProjectsAgentVersionCreationOptions BuildAgentVersionOptions()
+    private ProjectsAgentVersionCreationOptions BuildAgentVersionOptions(string? fabricDataAgentProjectConnectionId)
     {
         DeclarativeAgentDefinition definition = new(model: _config.ModelDeploymentName)
         {
@@ -114,6 +123,10 @@ public abstract class FoundryAgentBase : IFactoryAgent
         {
             definition.Tools.Add(BuildKnowledgeBaseTool());
         }
+        if (UsesFabricDataAgentTool)
+        {
+            definition.Tools.Add(BuildFabricDataAgentTool(fabricDataAgentProjectConnectionId));
+        }
 
         return new ProjectsAgentVersionCreationOptions(definition)
         {
@@ -121,7 +134,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
         };
     }
 
-    private bool HasDesiredDefinition(ProjectsAgentVersion agentVersion)
+    private bool HasDesiredDefinition(ProjectsAgentVersion agentVersion, string? fabricDataAgentProjectConnectionId)
     {
         if (agentVersion.Definition is not DeclarativeAgentDefinition definition)
         {
@@ -131,7 +144,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
         return string.Equals(agentVersion.Description, Description, StringComparison.Ordinal)
             && string.Equals(definition.Model, _config.ModelDeploymentName, StringComparison.Ordinal)
             && string.Equals(definition.Instructions, Instructions, StringComparison.Ordinal)
-            && HasExpectedKnowledgeBaseTool(definition);
+            && HasExpectedKnowledgeBaseTool(definition)
+            && HasExpectedFabricDataAgentTool(definition, fabricDataAgentProjectConnectionId);
     }
 
     private bool HasExpectedKnowledgeBaseTool(DeclarativeAgentDefinition definition)
@@ -179,6 +193,56 @@ public abstract class FoundryAgentBase : IFactoryAgent
         tool.Patch.Set("$.project_connection_id"u8, _config.KnowledgeBaseProjectConnectionName);
 
         return tool;
+    }
+
+    private bool HasExpectedFabricDataAgentTool(DeclarativeAgentDefinition definition, string? fabricDataAgentProjectConnectionId)
+    {
+        if (!UsesFabricDataAgentTool)
+        {
+            return true;
+        }
+
+        string expectedConnection = fabricDataAgentProjectConnectionId ?? _config.FabricDataAgentProjectConnectionName;
+        return definition.Tools
+            .Any(tool => tool.ToString()?.Contains(expectedConnection, StringComparison.Ordinal) == true);
+    }
+
+    private ResponseTool BuildFabricDataAgentTool(string? fabricDataAgentProjectConnectionId)
+    {
+        string projectConnectionId = fabricDataAgentProjectConnectionId ?? _config.FabricDataAgentProjectConnectionName;
+        return new FabricIQPreviewTool(projectConnectionId)
+        {
+            RequireApproval = GlobalMcpToolCallApprovalPolicy.NeverRequireApproval,
+        };
+    }
+
+    private async Task<string> ResolveProjectConnectionIdAsync(string connectionNameOrId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(connectionNameOrId))
+        {
+            return connectionNameOrId;
+        }
+
+        if (connectionNameOrId.StartsWith("/subscriptions/", StringComparison.OrdinalIgnoreCase))
+        {
+            return connectionNameOrId;
+        }
+
+        try
+        {
+            ClientResult<AIProjectConnection> result = await _projectClient.Connections.GetConnectionAsync(
+                connectionNameOrId,
+                includeCredentials: false,
+                cancellationToken: ct);
+            return string.IsNullOrWhiteSpace(result.Value.Id) ? connectionNameOrId : result.Value.Id;
+        }
+        catch (ClientResultException ex) when (ex.Status == 404)
+        {
+            _logger.LogWarning(
+                "Fabric project connection {ConnectionName} not found by name. Using configured value as-is.",
+                connectionNameOrId);
+            return connectionNameOrId;
+        }
     }
 
     private Uri BuildKnowledgeBaseMcpUri()
