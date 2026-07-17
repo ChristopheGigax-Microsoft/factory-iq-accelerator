@@ -11,6 +11,7 @@ public sealed record FoundryConfig
     public required string KnowledgeBaseName { get; init; }
     public required string KnowledgeBaseProjectConnectionName { get; init; }
     public required string FabricDataAgentProjectConnectionName { get; init; }
+    public string WorkIqProjectConnectionName { get; init; } = string.Empty;
     public bool DeletePersistentAgentOnExit { get; init; }
 }
 

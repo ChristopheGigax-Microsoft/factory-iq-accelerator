@@ -8,6 +8,8 @@ param fabricWorkspaceId string = ''
 param fabricDataAgentId string = ''
 @description('Optional full Fabric Data Agent MCP endpoint URL for Fabric IQ connection. If empty, Bicep uses the global api.fabric.microsoft.com endpoint.')
 param fabricDataAgentMcpTarget string = ''
+@description('Work IQ connection target URL for Maintenance and Plant Manager agents. Obtain from your M365 Work IQ service endpoint. Leave empty to skip.')
+param workIqConnectionTarget string = ''
 
 var baseName = 'fiq-${plantCode}-${environment}'
 var workspaceName = '${baseName}-ws'
@@ -58,6 +60,7 @@ module aiFoundry './modules/ai-foundry.bicep' = {
     fabricWorkspaceId: fabricWorkspaceId
     fabricDataAgentId: fabricDataAgentId
     fabricDataAgentMcpTarget: fabricDataAgentMcpTarget
+    workIqConnectionTarget: workIqConnectionTarget
     plantCode: plantCode
   }
 }
@@ -101,6 +104,7 @@ output connectionContract object = {
   foundryProjectId: aiFoundry.outputs.projectId
   foundryIqProjectConnectionName: aiFoundry.outputs.foundryIqProjectConnectionName
   foundryFabricProjectConnectionName: aiFoundry.outputs.foundryFabricProjectConnectionName
+  foundryWorkIqProjectConnectionName: aiFoundry.outputs.foundryWorkIqProjectConnectionName
   aiSearchEndpoint: aiSearch.outputs.endpoint
   foundryIqKnowledgeBaseName: foundryIqKnowledgeBaseName
   modelDeploymentName: aiFoundry.outputs.modelDeployment

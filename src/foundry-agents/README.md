@@ -14,7 +14,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 
 ## Connectors & IQ Sources
 
-> Current status: Foundry IQ (knowledge base MCP) and Fabric OneLake Catalog (Fabric Data Agent via Fabric IQ) are wired in the agents. Work IQ and Web IQ remain the next connectors to be added incrementally.
+> Current status: Foundry IQ (knowledge base MCP), Fabric OneLake Catalog (Fabric Data Agent via Fabric IQ), and **Work IQ** are wired. Web IQ remains the next connector to add incrementally.
 
 | Connector | Purpose | Used by |
 |-----------|---------|---------|
@@ -63,13 +63,14 @@ export AI_SEARCH_ENDPOINT="https://<search>.search.windows.net"
 export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<search-knowledge-base-name>"
 export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="foundry-iq-kb-connection"
 export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="fabric-iq-data-agent-connection"
+export FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME="work-iq-connection"  # optional — Maintenance & Plant Manager only
 
 # Optional
 export DELETE_PERSISTENT_AGENT_ON_EXIT="false"  # default: agents stay persistent
 export USE_MANAGED_IDENTITY="false"             # default local run: false; set true in Azure-hosted runtime
 ```
 
-`FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME` can be either the project connection **name** or its full ARM **resource ID**.
+`FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME` and `FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME` can each be either the project connection **name** or its full ARM **resource ID**. Work IQ is opt-in: if `FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME` is empty, the Maintenance and Plant Manager agents run without the Work IQ tool.
 
 ### Fabric Data Agent readiness check
 

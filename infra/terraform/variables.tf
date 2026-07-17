@@ -54,3 +54,9 @@ variable "fabric_data_agent_mcp_target" {
   description = "Optional full Fabric Data Agent MCP endpoint URL. If empty, Terraform uses the global api.fabric.microsoft.com endpoint."
   default     = ""
 }
+
+variable "work_iq_connection_target" {
+  type        = string
+  description = "Work IQ connection target URL for the Foundry project connection. Obtain this from your Microsoft 365 Work IQ service endpoint (e.g. https://work.microsoft.com). Leave empty to skip Work IQ connection provisioning."
+  default     = ""
+}

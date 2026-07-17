@@ -43,6 +43,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
     protected virtual bool UsesFoundryIqKnowledgeBase => true;
     protected virtual bool UsesFabricDataAgentTool => true;
+    protected virtual bool UsesWorkIqTool => false;
 
     public async Task RegisterAsync(CancellationToken ct = default)
     {
@@ -59,11 +60,19 @@ public abstract class FoundryAgentBase : IFactoryAgent
                 ct);
         }
 
+        string? workIqProjectConnectionId = null;
+        if (UsesWorkIqTool && !string.IsNullOrWhiteSpace(_config.WorkIqProjectConnectionName))
+        {
+            workIqProjectConnectionId = await ResolveProjectConnectionIdAsync(
+                _config.WorkIqProjectConnectionName,
+                ct);
+        }
+
         ProjectsAgentRecord? existingAgent = await FindExistingAgentAsync(ct);
         if (existingAgent is not null)
         {
             ProjectsAgentVersion latestVersion = existingAgent.GetLatestVersion();
-            if (HasDesiredDefinition(latestVersion, fabricDataAgentProjectConnectionId))
+            if (HasDesiredDefinition(latestVersion, fabricDataAgentProjectConnectionId, workIqProjectConnectionId))
             {
                 _registeredVersion = latestVersion;
                 _registeredAgent = _projectClient.AsAIAgent(existingAgent);
@@ -78,7 +87,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
         ClientResult<ProjectsAgentVersion> createdVersion = await _projectClient.AgentAdministrationClient.CreateAgentVersionAsync(
             agentName: Name,
-            options: BuildAgentVersionOptions(fabricDataAgentProjectConnectionId),
+            options: BuildAgentVersionOptions(fabricDataAgentProjectConnectionId, workIqProjectConnectionId),
             cancellationToken: ct);
 
         _registeredVersion = createdVersion.Value;
@@ -112,7 +121,9 @@ public abstract class FoundryAgentBase : IFactoryAgent
         _registeredVersion = null;
     }
 
-    private ProjectsAgentVersionCreationOptions BuildAgentVersionOptions(string? fabricDataAgentProjectConnectionId)
+    private ProjectsAgentVersionCreationOptions BuildAgentVersionOptions(
+        string? fabricDataAgentProjectConnectionId,
+        string? workIqProjectConnectionId)
     {
         DeclarativeAgentDefinition definition = new(model: _config.ModelDeploymentName)
         {
@@ -127,6 +138,10 @@ public abstract class FoundryAgentBase : IFactoryAgent
         {
             definition.Tools.Add(BuildFabricDataAgentTool(fabricDataAgentProjectConnectionId));
         }
+        if (UsesWorkIqTool && workIqProjectConnectionId is not null)
+        {
+            definition.Tools.Add(BuildWorkIqTool(workIqProjectConnectionId));
+        }
 
         return new ProjectsAgentVersionCreationOptions(definition)
         {
@@ -134,7 +149,10 @@ public abstract class FoundryAgentBase : IFactoryAgent
         };
     }
 
-    private bool HasDesiredDefinition(ProjectsAgentVersion agentVersion, string? fabricDataAgentProjectConnectionId)
+    private bool HasDesiredDefinition(
+        ProjectsAgentVersion agentVersion,
+        string? fabricDataAgentProjectConnectionId,
+        string? workIqProjectConnectionId)
     {
         if (agentVersion.Definition is not DeclarativeAgentDefinition definition)
         {
@@ -145,7 +163,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
             && string.Equals(definition.Model, _config.ModelDeploymentName, StringComparison.Ordinal)
             && string.Equals(definition.Instructions, Instructions, StringComparison.Ordinal)
             && HasExpectedKnowledgeBaseTool(definition)
-            && HasExpectedFabricDataAgentTool(definition, fabricDataAgentProjectConnectionId);
+            && HasExpectedFabricDataAgentTool(definition, fabricDataAgentProjectConnectionId)
+            && HasExpectedWorkIqTool(definition, workIqProjectConnectionId);
     }
 
     private bool HasExpectedKnowledgeBaseTool(DeclarativeAgentDefinition definition)
@@ -214,6 +233,23 @@ public abstract class FoundryAgentBase : IFactoryAgent
         {
             RequireApproval = GlobalMcpToolCallApprovalPolicy.NeverRequireApproval,
         };
+    }
+
+    private bool HasExpectedWorkIqTool(DeclarativeAgentDefinition definition, string? workIqProjectConnectionId)
+    {
+        if (!UsesWorkIqTool || string.IsNullOrWhiteSpace(_config.WorkIqProjectConnectionName))
+        {
+            return true;
+        }
+
+        string expectedConnection = workIqProjectConnectionId ?? _config.WorkIqProjectConnectionName;
+        return definition.Tools
+            .Any(tool => tool.ToString()?.Contains(expectedConnection, StringComparison.Ordinal) == true);
+    }
+
+    private ResponseTool BuildWorkIqTool(string workIqProjectConnectionId)
+    {
+        return new WorkIQPreviewTool(workIqProjectConnectionId);
     }
 
     private async Task<string> ResolveProjectConnectionIdAsync(string connectionNameOrId, CancellationToken ct)

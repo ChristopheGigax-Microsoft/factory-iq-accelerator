@@ -123,6 +123,16 @@ For tenants requiring a region-scoped Fabric MCP endpoint, Terraform exposes `fa
 
 Each Factory IQ agent is registered with the **Fabric OneLake Catalog** tool (`fabric_iq_preview`) bound to this connection so agents can query live Fabric data.
 
+IaC also creates an optional **Work IQ project connection** (`work-iq-connection`) when `work_iq_connection_target` (Terraform) or `workIqConnectionTarget` (Bicep) is set:
+
+- `category: RemoteTool`
+- `authType: UserEntraToken`
+- `audience: https://work.microsoft.com`
+- `metadata.type: work_iq_preview`
+- `target: <Work IQ service endpoint>`
+
+The **Maintenance Agent** and **Plant Manager Agent** use this connection to query and manage Microsoft 365 work items (Planner tasks, open action items, escalation tracking).
+
 ## Prerequisites
 
 - Azure subscription with Owner access
@@ -142,6 +152,7 @@ export AI_SEARCH_ENDPOINT="<from connection.json: aiSearchEndpoint>"
 export FOUNDRY_IQ_KNOWLEDGE_BASE_NAME="<from connection.json: foundryIqKnowledgeBaseName>"
 export FOUNDRY_IQ_PROJECT_CONNECTION_NAME="<from connection.json: foundryIqProjectConnectionName>"
 export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="<from connection.json: foundryFabricProjectConnectionName>"
+export FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME="<from connection.json: foundryWorkIqProjectConnectionName>"  # optional — only for Maintenance and Plant Manager
 export STORAGE_ACCOUNT_ENDPOINT="<from connection.json: storageAccountEndpoint>"
 export FABRIC_DATA_AGENT_ID="<from connection.json: dataAgentId>"
 export FABRIC_WORKSPACE_ID="<from connection.json: workspaceId>"

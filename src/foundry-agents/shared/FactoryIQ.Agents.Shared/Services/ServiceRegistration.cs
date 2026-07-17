@@ -68,6 +68,8 @@ public static class ServiceRegistration
                 ?? DefaultKnowledgeBaseProjectConnectionName,
             FabricDataAgentProjectConnectionName = Environment.GetEnvironmentVariable("FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME")
                 ?? DefaultFabricDataAgentProjectConnectionName,
+            WorkIqProjectConnectionName = Environment.GetEnvironmentVariable("FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME")
+                ?? string.Empty,
             DeletePersistentAgentOnExit = bool.TryParse(
                 Environment.GetEnvironmentVariable("DELETE_PERSISTENT_AGENT_ON_EXIT"),
                 out var deleteOnExit)

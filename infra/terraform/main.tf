@@ -37,6 +37,7 @@ locals {
   base_name                     = "fiq-${var.plant_code}-${var.environment}"
   workspace_id                  = var.workspace_id
   fabric_data_agent_mcp_target  = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
+  work_iq_connection_target     = trimspace(var.work_iq_connection_target)
 }
 
 resource "azurerm_resource_group" "this" {
@@ -172,6 +173,32 @@ resource "azapi_resource" "fabric_iq_data_agent_connection" {
       audience      = "https://api.fabric.microsoft.com"
       metadata = {
         type = "fabric_iq_preview"
+      }
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Work IQ project connection — connects Maintenance and Plant Manager agents
+# to Microsoft 365 work management (Planner, Tasks, work orders).
+# Only provisioned when work_iq_connection_target is set.
+# ---------------------------------------------------------------------------
+resource "azapi_resource" "work_iq_connection" {
+  count                     = local.work_iq_connection_target != "" ? 1 : 0
+  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
+  name                      = "work-iq-connection"
+  parent_id                 = module.ai_foundry.project_id
+  schema_validation_enabled = false
+
+  body = {
+    properties = {
+      authType      = "UserEntraToken"
+      category      = "RemoteTool"
+      isSharedToAll = false
+      target        = local.work_iq_connection_target
+      audience      = "https://work.microsoft.com"
+      metadata = {
+        type = "work_iq_preview"
       }
     }
   }

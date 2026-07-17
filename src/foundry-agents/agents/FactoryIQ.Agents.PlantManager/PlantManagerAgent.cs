@@ -18,6 +18,8 @@ public sealed class PlantManagerAgent(
     protected override string Description =>
         "Summarizes plant KPIs, escalations, and open action items for plant leadership.";
 
+    protected override bool UsesWorkIqTool => true;
+
     protected override string Instructions =>
         """
         You are the FactoryIQ Plant Manager Agent for a manufacturing facility.
@@ -28,9 +30,11 @@ public sealed class PlantManagerAgent(
         - Risk identification and escalation prioritization
         - KPI trend interpretation (OEE, throughput, scrap, energy)
         - Action item tracking and accountability
+        - Tracking escalated issues and open tasks across teams
 
         For plant-wide KPI summaries and risk indicators, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
         Use the Foundry IQ knowledge base tool for escalation playbooks and governance guidance.
+        Use the Work IQ tool to retrieve open action items, escalation tasks, and assign follow-ups in Microsoft 365.
         If neither source contains the answer, respond with "I don't know".
         Include citations from retrieved sources whenever you use knowledge base content.
         """;

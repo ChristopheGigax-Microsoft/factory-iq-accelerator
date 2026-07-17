@@ -13,6 +13,7 @@ output "connection_contract" {
     foundryProjectId                   = module.ai_foundry.project_id
     foundryIqProjectConnectionName     = azapi_resource.foundry_iq_kb_connection.name
     foundryFabricProjectConnectionName = azapi_resource.fabric_iq_data_agent_connection.name
+    foundryWorkIqProjectConnectionName = length(azapi_resource.work_iq_connection) > 0 ? azapi_resource.work_iq_connection[0].name : ""
     aiSearchEndpoint                   = module.ai_search.endpoint
     foundryIqKnowledgeSourceName       = module.ai_search.knowledge_source_name
     foundryIqKnowledgeBaseName         = module.ai_search.knowledge_base_name

@@ -7,6 +7,7 @@ param knowledgeBaseName string
 param fabricWorkspaceId string = ''
 param fabricDataAgentId string = ''
 param fabricDataAgentMcpTarget string = ''
+param workIqConnectionTarget string = ''
 param plantCode string
 param modelDeploymentName string = 'gpt-4o'
 var resolvedFabricDataAgentMcpTarget = !empty(fabricDataAgentMcpTarget)
@@ -127,6 +128,26 @@ resource fabricIqDataAgentConnection 'Microsoft.CognitiveServices/accounts/proje
   }
 }
 
+// ---------------------------------------------------------------------------
+// Work IQ project connection — gives Maintenance and Plant Manager agents
+// access to Microsoft 365 work management (Planner, Tasks, work orders).
+// Only provisioned when workIqConnectionTarget is set.
+// ---------------------------------------------------------------------------
+resource workIqConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview' = if (!empty(workIqConnectionTarget)) {
+  parent: project
+  name: 'work-iq-connection'
+  properties: {
+    authType: 'UserEntraToken'
+    category: 'RemoteTool'
+    isSharedToAll: false
+    target: workIqConnectionTarget
+    audience: 'https://work.microsoft.com'
+    metadata: {
+      type: 'work_iq_preview'
+    }
+  }
+}
+
 output foundryId string = foundry.id
 output foundryEndpoint string = foundry.properties.endpoint
 output foundryPrincipalId string = foundry.identity.principalId
@@ -137,3 +158,4 @@ output foundryIqProjectConnectionName string = foundryIqKnowledgeBaseConnection.
 output foundryFabricProjectConnectionName string = !empty(fabricWorkspaceId) && !empty(fabricDataAgentId)
   ? fabricIqDataAgentConnection.name
   : ''
+output foundryWorkIqProjectConnectionName string = !empty(workIqConnectionTarget) ? workIqConnection.name : ''
