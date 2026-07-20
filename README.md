@@ -1,249 +1,338 @@
-# Factory IQ Accelerator
+<div align="center">
 
-![Factory IQ Accelerator Hero](docs/assets/accelerator-hero.svg)
+<!-- PLACEHOLDER: Logo -->
+<!-- Image: docs/assets/factory-iq-logo.png -->
+<!-- Specs: SVG or PNG, white background, ~600×160px, dark-mode variant optional -->
+<!-- Content: "Factory IQ" wordmark with a subtle industrial/AI icon — e.g. a factory silhouette merged with a circuit/brain motif -->
+<img src="docs/assets/accelerator-hero.svg" alt="Factory IQ Accelerator" width="600"/>
 
-Build an industrial-grade Microsoft Fabric foundation in minutes, not weeks.
+<br/>
 
-This accelerator is a deployment-ready baseline for industrial data platforms on Microsoft Fabric. It standardizes how a plant foundation is deployed, modeled, and handed off to data/model operations teams.
+**Industrial AI Platform Accelerator — from raw Azure subscription to live manufacturing agents in one deploy.**
 
-At a high level, the accelerator does four things:
+<br/>
 
-1. Provisions the Fabric foundation for one plant: capacity, workspace, eventhouse, KQL database, and eventstream.
-2. Keeps infrastructure engine choice flexible: Terraform or Bicep.
-3. Centralizes domain model assets in one shared location aligned to ISA-95.
-4. Produces a stable output contract, `connection.json`, so model deployment is engine-blind.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+[![IaC: Terraform + Bicep](https://img.shields.io/badge/IaC-Terraform%20%7C%20Bicep-623CE4?style=flat-square&logo=terraform)](infra/)
+[![Platform: Microsoft Fabric](https://img.shields.io/badge/Platform-Microsoft%20Fabric-00BCF2?style=flat-square)](https://learn.microsoft.com/fabric)
+[![Agents: Azure AI Foundry](https://img.shields.io/badge/Agents-Azure%20AI%20Foundry-0078D4?style=flat-square&logo=microsoft-azure)](https://ai.azure.com)
+[![SDK: .NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet)](src/foundry-agents/)
+[![Standard: ISA-95](https://img.shields.io/badge/Standard-ISA--95-2e7d32?style=flat-square)](shared/isa95-model/)
 
-Core operating principles:
+<br/>
 
-- one stack per plant
-- ISA-95-aligned model foundation
-- two interchangeable IaC engines
-- one stable handoff contract (connection.json)
+[**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Agents**](#-manufacturing-agents) · [**IaC Engines**](#-iac-engines) · [**Docs**](#-documentation)
 
-## What You Get (v1)
+</div>
 
-- Fabric capacity (default `F2`, parameterized)
-- One workspace per plant
-- Eventhouse + KQL database
-- Eventstream baseline topology
-- ISA-95 core model scripts and update policies
-- Model deployment + hierarchy seeding scripts
+---
 
-## What You Get (v2 — Foundry Agents)
+## The Problem
 
-- Azure AI Foundry Hub + Project (system MI)
-- Azure OpenAI Service with GPT-4o deployment
-- Azure AI Search (semantic/hybrid search for Foundry IQ)
-- Storage Account with knowledge base container
-- Full RBAC provisioning between all resources
-- 5 Manufacturing Agents (C#/.NET 10, Microsoft Agent Framework):
-  - **Operations Agent** — OEE monitoring, deviation detection
-  - **Maintenance Agent** — alarm correlation, asset history
-  - **Quality Agent** — defect investigation, SPC analysis
-  - **Plant Manager Agent** — executive summaries, risk escalation
-  - **Continuous Improvement Agent** — loss analysis, kaizen opportunities
-- Foundry IQ knowledge base with sample documents (maintenance procedures, quality standards, lean templates)
-- Integration via Fabric Data Agent + Fabric IQ
+Manufacturing plants generate enormous volumes of operational data — KPIs, alarms, sensor readings, work orders — but it sits in silos, disconnected from the people who need it to make decisions.
 
-## Repo Tour
+Standing up the full data and AI stack (data platform, ontology, telemetry pipeline, AI agents) takes months, requires deep expertise in multiple technologies, and still ends up inconsistent across plants.
 
-```text
-infra/
-	terraform/            # Native Fabric-provider baseline + Foundry modules
-	bicep/                # ARM + deploymentScript path + Foundry modules
+**Factory IQ Accelerator** solves this by providing a fully wired, opinionated, deployment-ready baseline that any team can stamp onto a new plant in minutes.
 
-src/
-	fabric-apps/          # Rayfin workspace app for baseline management
-	foundry-agents/       # AI Foundry manufacturing agents (.NET 10)
-		shared/             # Common services, models, config
-		agents/             # 5 agent projects (Operations, Maintenance, Quality, PlantManager, CI)
-		knowledge/          # Sample documents for Foundry IQ (AI Search)
+---
 
-shared/
-	isa95-model/
-		core/               # Project-owned baseline model
-		extensions/         # Customer-owned custom entities
-		config/             # Plant hierarchy YAML
-	eventstream/
-	scripts/
+## What It Does
 
-contracts/              # Handoff and runner interface
-docs/                   # Architecture and validation guidance
+<!-- PLACEHOLDER: Hero dashboard screenshot -->
+<!-- Image: docs/assets/screenshot-dashboard.png -->
+<!-- Specs: 1280×720px, browser-framed or borderless crop of the Foundry portal/Fabric portal -->
+<!-- Content: Either the Foundry Agents list in the portal OR a Fabric Eventhouse KQL query returning real OEE data -->
+<div align="center">
+<img src="docs/assets/screenshot-dashboard.png" alt="Factory IQ — Plant dashboard" width="860"/>
+</div>
+
+<br/>
+
+In a single deploy, Factory IQ Accelerator provisions:
+
+| Layer | What Gets Built |
+|-------|----------------|
+| 🏭 **Data Foundation** | Microsoft Fabric capacity, workspace, Eventhouse, KQL database, Eventstream |
+| 📐 **Domain Model** | ISA-95-aligned KQL tables, update policies, and plant hierarchy seeding |
+| 🔍 **Search & Knowledge** | Azure AI Search, knowledge base, vector index over maintenance/quality docs |
+| 🤖 **AI Agents** | 5 manufacturing agents on Azure AI Foundry (C#/.NET 10) |
+| 🔗 **Live Connectors** | Fabric Data Agent (MCP), Work IQ (M365 tasks), Foundry IQ (RAG) |
+| 📄 **Handoff Contract** | `connection.json` — engine-agnostic output contract for downstream tools |
+
+---
+
+## Architecture
+
+<!-- PLACEHOLDER: Architecture diagram -->
+<!-- Image: docs/assets/architecture-diagram.png -->
+<!-- Specs: 1400×800px light background (also provide -dark.png variant), export from diagrams.net or Visio -->
+<!-- Content: Three-column diagram: left=Fabric (Eventhouse, Eventstream, Data Agent), center=Foundry (5 agents, connections), right=Microsoft 365 (Work IQ). Arrows show data flows. ISA-95 model sits at the bottom as shared foundation. -->
+<div align="center">
+<img src="docs/assets/architecture-diagram.png" alt="Factory IQ Architecture" width="900"/>
+</div>
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Factory IQ Platform                               │
+│                                                                             │
+│  ┌──────────────────┐    ┌──────────────────────────────┐    ┌───────────┐ │
+│  │  Microsoft Fabric │    │     Azure AI Foundry         │    │   M365    │ │
+│  │                  │    │                              │    │           │ │
+│  │  Eventhouse      │◄──►│  Operations    Maintenance   │◄──►│  Work IQ  │ │
+│  │  KQL Database    │    │  Quality       Plant Manager │    │  (Tasks)  │ │
+│  │  Eventstream     │    │  Cont. Improv.               │    │           │ │
+│  │  Data Agent (MCP)│    │                              │    └───────────┘ │
+│  └──────────────────┘    │  ┌──────────┐ ┌──────────┐  │                  │
+│                          │  │Foundry IQ│ │ Web IQ   │  │    ┌───────────┐ │
+│  ┌──────────────────┐    │  │ (AI Srch)│ │          │  │    │  Storage  │ │
+│  │   ISA-95 Model   │    │  └──────────┘ └──────────┘  │    │  Account  │ │
+│  │  Shared Ontology │    └──────────────────────────────┘    └───────────┘ │
+│  └──────────────────┘                                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Choose Your Engine
+---
 
-Pick **exactly one** engine under `infra/` for deployment. You can remove the other one and still have a complete stack.
+## Manufacturing Agents
 
-- Terraform
-- Bicep
+Five production-ready agents, each covering a distinct manufacturing domain:
 
-## How To Deploy
+<!-- PLACEHOLDER: Agents feature grid -->
+<!-- Image: docs/assets/agents-grid.png -->
+<!-- Specs: 1280×500px, 5-column card layout (or 3+2), dark background (#1e1e2e or similar) -->
+<!-- Content: Each card = agent name + icon + 2-line description. Icons: wrench (maintenance), chart-line (operations), beaker (quality), building (plant manager), arrows-repeat (CI). -->
+<div align="center">
+<img src="docs/assets/agents-grid.png" alt="Manufacturing Agents" width="860"/>
+</div>
 
-### 1) Prerequisites
+<br/>
 
-- Azure CLI installed and authenticated
-- Access to target subscription/resource group
-- One selected IaC engine: Terraform or Bicep
-- Python 3.11+ for model deployment scripts
+| Agent | Role | Tools |
+|-------|------|-------|
+| ⚙️ **Operations** | Monitor OEE, detect performance deviations, explain root causes | Fabric Data Agent · Foundry IQ KB |
+| 🔧 **Maintenance** | Correlate alarms, asset history, sensor trends; recommend corrective actions | Fabric Data Agent · Foundry IQ KB · **Work IQ** |
+| 🔬 **Quality** | Investigate scrap, SPC drift, batch failures, defect patterns | Fabric Data Agent · Foundry IQ KB · Web IQ |
+| 🏢 **Plant Manager** | Summarize plant performance, escalate critical risks, track open actions | Fabric Data Agent · Foundry IQ KB · **Work IQ** |
+| 🔁 **Continuous Improvement** | Identify chronic losses, kaizen opportunities, improvement trends | Fabric Data Agent · Foundry IQ KB · Web IQ |
 
-### 2) Define deployment context
+Agents are registered as **versioned Foundry Agents** and stay persistent in the portal between runs.
 
-Use these values consistently across infra + model deployment:
+---
 
-- plantCode
-- environment
-- region
-- capacitySku (default F2)
+## Connectors & IQ Sources
 
-Example bash variables:
+<!-- PLACEHOLDER: Connector diagram -->
+<!-- Image: docs/assets/connectors-diagram.png -->
+<!-- Specs: 900×300px, horizontal flow with 4 connector boxes and arrows pointing to "Agents" hub in center -->
+<!-- Content: left-to-right: [Fabric Data Agent] → [Agents Hub] ← [Foundry IQ / AI Search] ← [Work IQ] ← [Web IQ] -->
+
+| Connector | Technology | Used By |
+|-----------|-----------|---------|
+| **Fabric IQ** | Fabric Data Agent MCP — live KQL queries on Eventhouse | All agents |
+| **Foundry IQ** | Azure AI Search — RAG over maintenance procedures, quality standards, lean templates | All agents |
+| **Work IQ** | Microsoft 365 work management (Planner, Tasks) | Maintenance · Plant Manager |
+| **Web IQ** | Bing / web search for benchmarks and supplier specs | Quality · Continuous Improvement |
+
+---
+
+## IaC Engines
+
+Pick one — both produce the same `connection.json` handoff contract.
+
+<table>
+<tr>
+<th>Terraform</th>
+<th>Bicep</th>
+</tr>
+<tr>
+<td>
+
+```bash
+terraform -chdir=infra/terraform init
+terraform -chdir=infra/terraform apply \
+  -var-file=environments/dev.tfvars
+terraform -chdir=infra/terraform output \
+  -json connection_contract > connection.json
+```
+
+</td>
+<td>
+
+```bash
+az deployment group create \
+  --resource-group "$RESOURCE_GROUP" \
+  --template-file infra/bicep/main.bicep \
+  --parameters infra/bicep/environments/dev.bicepparam
+
+az deployment group show \
+  --resource-group "$RESOURCE_GROUP" \
+  --name main \
+  --query properties.outputs.connectionContract.value \
+  > connection.json
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+
+- Azure CLI authenticated (`az login`)
+- Owner access on target subscription
+- .NET 10 SDK (for Foundry agents)
+- Python 3.11+ (for ISA-95 model scripts)
+- Terraform ≥ 1.6 **or** Azure CLI with Bicep
+
+### 2. Set context
 
 ```bash
 export PLANT_CODE="plant1"
 export ENVIRONMENT="dev"
 export REGION="westeurope"
-export CAPACITY_SKU="F2"
-export RESOURCE_GROUP="rg-fiq-plant1-dev"
+export RESOURCE_GROUP="rg-fiq-${PLANT_CODE}-${ENVIRONMENT}"
 ```
 
-### 3) Authenticate
-
-Interactive login:
+### 3. Deploy infrastructure
 
 ```bash
-az login
-az account set --subscription "<subscription-id-or-name>"
-```
-
-Service principal login:
-
-```bash
-az login --service-principal \
-	--username "<app-id>" \
-	--password "<client-secret>" \
-	--tenant "<tenant-id>"
-```
-
-### 4) Deploy with your chosen engine
-
-#### Terraform
-
-```bash
+# Terraform path
 terraform -chdir=infra/terraform init
-terraform -chdir=infra/terraform plan -var-file=environments/dev.tfvars
-terraform -chdir=infra/terraform apply -var-file=environments/dev.tfvars
+terraform -chdir=infra/terraform apply -var-file=environments/dev.tfvars -auto-approve
 terraform -chdir=infra/terraform output -json connection_contract > connection.json
 ```
 
-#### Bicep
-
-```bash
-az deployment group create \
-	--resource-group "$RESOURCE_GROUP" \
-	--template-file infra/bicep/main.bicep \
-	--parameters infra/bicep/environments/dev.bicepparam
-
-az deployment group show \
-	--resource-group "$RESOURCE_GROUP" \
-	--name main \
-	--query properties.outputs.connectionContract.value \
-	--output json > connection.json
-```
-
-### 5) Validate connection contract
-
-```bash
-jq -e '.tenantId and .subscriptionId and .resourceGroup and .region and .workspaceId and .eventhouseId and .kqlDatabase and .generatedAt and .schemaVersion' connection.json
-jq -e '.schemaVersion == "1.0"' connection.json
-```
-
-### 6) Deploy ISA-95 model and hierarchy
-
-```bash
-python shared/scripts/seed-hierarchy.py --config shared/isa95-model/config/plant-hierarchy.yaml
-
-python shared/scripts/deploy-model.py \
-	--connection ./connection.json \
-	--core-dir ./shared/isa95-model/core \
-	--extensions-dir ./shared/isa95-model/extensions \
-	--hierarchy-config ./shared/isa95-model/config/plant-hierarchy.yaml
-```
-
-### 7) Re-run to confirm idempotency
+### 4. Deploy ISA-95 model
 
 ```bash
 python shared/scripts/deploy-model.py \
-	--connection ./connection.json \
-	--core-dir ./shared/isa95-model/core \
-	--extensions-dir ./shared/isa95-model/extensions \
-	--hierarchy-config ./shared/isa95-model/config/plant-hierarchy.yaml
+  --connection ./connection.json \
+  --core-dir ./shared/isa95-model/core \
+  --extensions-dir ./shared/isa95-model/extensions \
+  --hierarchy-config ./shared/isa95-model/config/plant-hierarchy.yaml
 ```
 
-Expected result: no unintended duplicate resources or schema objects.
+### 5. Run an agent
 
-## Contract Snapshot
+```bash
+export PROJECT_ENDPOINT="<from connection.json: foundryProjectEndpoint>"
+export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="fabric-iq-data-agent-connection"
 
-Every engine must emit the same handoff artifact:
+dotnet run --project src/foundry-agents/agents/FactoryIQ.Agents.Maintenance \
+  -- "Show me the top 5 open alarms for line 1"
+```
+
+<!-- PLACEHOLDER: Quick start terminal recording -->
+<!-- Image: docs/assets/quickstart-terminal.gif or .png -->
+<!-- Specs: 1200×500px, dark terminal theme (Dracula / Tokyo Night) -->
+<!-- Content: Animated GIF OR static screenshot of `dotnet run` output showing agent response with cited sources -->
+
+---
+
+## Repo Structure
+
+```
+factory-iq-accelerator/
+├── infra/
+│   ├── terraform/          # Terraform: Fabric + Foundry + AI Search + Storage
+│   └── bicep/              # Bicep: same stack, ARM-native
+├── src/
+│   ├── foundry-agents/     # .NET 10 — 5 AI manufacturing agents
+│   │   ├── shared/         # FoundryAgentBase, AgentRunner, FoundryConfig
+│   │   ├── agents/         # Operations · Maintenance · Quality · PlantManager · CI
+│   │   └── knowledge/      # Sample docs for Foundry IQ (maintenance, quality, lean)
+│   └── fabric-apps/        # Fabric workspace application
+├── shared/
+│   └── isa95-model/        # ISA-95 KQL schema, update policies, hierarchy YAML
+├── contracts/              # connection.json schema + model runner interface
+└── docs/                   # Architecture, Foundry agent integration guide
+```
+
+---
+
+## Connection Contract
+
+Every IaC engine emits the same artifact — `connection.json` — used by all downstream tools:
 
 ```json
 {
-	"tenantId": "...",
-	"subscriptionId": "...",
-	"resourceGroup": "...",
-	"region": "...",
-	"workspaceId": "...",
-	"eventhouseId": "...",
-	"kqlDatabase": "...",
-	"generatedAt": "...",
-	"schemaVersion": "1.0"
+  "tenantId": "...",
+  "subscriptionId": "...",
+  "resourceGroup": "rg-fiq-plant1-dev",
+  "region": "westeurope",
+  "workspaceId": "...",
+  "eventhouseId": "...",
+  "kqlDatabase": "fiq-plant1-dev-kql",
+  "foundryProjectEndpoint": "https://...",
+  "foundryIqProjectConnectionName": "foundry-iq-kb-connection",
+  "foundryFabricProjectConnectionName": "fabric-iq-data-agent-connection",
+  "foundryWorkIqProjectConnectionName": "work-iq-connection",
+  "aiSearchEndpoint": "https://...",
+  "modelDeploymentName": "gpt-4o",
+  "schemaVersion": "3.0"
 }
 ```
 
-Canonical contract: `contracts/connection-contract.md`
+> The contract is engine-blind: swap Terraform for Bicep (or the other way around) without touching any downstream code.
 
-## Customization Without Forking
+---
 
-Use these files as your customization surface.
+## Customization
 
-| File | What To Change | Operational Impact |
-|---|---|---|
-| `shared/isa95-model/config/plant-hierarchy.yaml` | Update enterprise/site/area/workCenter/workUnit definitions and IDs | Changes seeded hierarchy in KQL dimensions; affects downstream joins, dashboards, and equipment mapping |
-| `shared/isa95-model/extensions/*.kql` | Add customer entities/functions/policies using numeric prefixes (for example `30_*`, `40_*`) | Adds plant/customer-specific model capabilities without touching core; applied after core on each run |
-| `shared/eventstream/definition/eventstream.json` | Adjust input/output topology and routing | Changes telemetry ingestion path into Eventhouse landing tables |
-| `infra/<engine>/environments/*` | Adjust plant/environment/region/SKU parameters | Changes deployment naming, target region, and scale footprint |
+No forking needed. Use these files as your customization surface:
 
-Recommended customization rules:
+| File | What To Change |
+|------|---------------|
+| `shared/isa95-model/config/plant-hierarchy.yaml` | Enterprise → Site → Area → WorkCenter → WorkUnit definitions |
+| `shared/isa95-model/extensions/*.kql` | Customer-specific schema, functions, policies |
+| `shared/eventstream/definition/eventstream.json` | Telemetry ingestion topology |
+| `infra/<engine>/environments/*` | Plant code, region, SKU, optional feature flags |
+| `src/foundry-agents/knowledge/` | Maintenance procedures, quality standards, lean templates |
 
-1. Keep `shared/isa95-model/core/` unchanged unless you are intentionally changing product baseline behavior.
-2. Put all customer-specific schema in `extensions/` so upgrades remain clean.
-3. Keep IDs stable in hierarchy YAML once data consumers depend on them.
-4. Re-run model deployment after each customization and validate with representative queries.
+**Rule:** Keep `shared/isa95-model/core/` unchanged. All customer-specific schema goes in `extensions/`.
 
-Quick examples:
+---
 
-```bash
-# Add extension file and deploy
-cp shared/isa95-model/extensions/30_sample_tool_entity.kql shared/isa95-model/extensions/31_my_extension.kql
-python shared/scripts/deploy-model.py \
-	--connection ./connection.json \
-	--core-dir ./shared/isa95-model/core \
-	--extensions-dir ./shared/isa95-model/extensions \
-	--hierarchy-config ./shared/isa95-model/config/plant-hierarchy.yaml
+## Documentation
 
-# Edit hierarchy then reseed/validate
-python shared/scripts/seed-hierarchy.py --config shared/isa95-model/config/plant-hierarchy.yaml
-```
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | Platform architecture, design decisions |
+| [Foundry Agents](docs/foundry-agents.md) | Agent integration guide, connectors, RBAC |
+| [Connection Contract](contracts/connection-contract.md) | Schema reference for `connection.json` |
+| [Terraform README](infra/terraform/README.md) | Terraform-specific deployment guide |
+| [Bicep README](infra/bicep/README.md) | Bicep-specific deployment guide |
+| [ISA-95 Model](shared/isa95-model/README.md) | Model schema, hierarchy, extension guide |
+| [Foundry Agents (src)](src/foundry-agents/README.md) | Agent developer guide, env vars, local run |
 
-## Validation Checklist
+---
 
-- contract fields present and valid
-- equivalent logical resources across engines
-- deterministic naming (`fiq-{plant}-{env}-{resource}`)
-- successful second run with no unintended duplicates
+## Tech Stack
 
-## Next Steps
+| Technology | Role |
+|------------|------|
+| [Microsoft Fabric](https://learn.microsoft.com/fabric) | Real-time operational data platform |
+| [Azure AI Foundry](https://ai.azure.com) | Agent hosting, connections, versioning |
+| [Azure OpenAI (GPT-4o)](https://learn.microsoft.com/azure/ai-services/openai/) | Agent reasoning and response generation |
+| [Azure AI Search](https://learn.microsoft.com/azure/search/) | Foundry IQ vector / hybrid search |
+| [.NET 10 / C#](https://dotnet.microsoft.com) | Agent runtime |
+| [Microsoft Agent Framework](https://github.com/microsoft/agents) | Agent orchestration SDK |
+| [Terraform](https://www.terraform.io) + [Fabric Provider](https://registry.terraform.io/providers/microsoft/fabric) | IaC engine A |
+| [Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/) | IaC engine B |
+| [ISA-95](https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa95) | Manufacturing ontology standard |
 
-- Start with the engine README in your chosen folder under `infra/`
-- Follow full runbook in `specs/001-fabric-foundation/quickstart.md`
-- Review architecture constraints in `docs/architecture.md`
-- Set up Foundry agents: see `docs/foundry-agents.md`
+---
+
+<div align="center">
+
+Built with ❤️ for manufacturing teams by Microsoft.
+
+<!-- PLACEHOLDER: Microsoft logo or "Made with Azure" badge -->
+<!-- Image: docs/assets/made-with-azure.svg -->
+<!-- Specs: 200×48px SVG, use the official "Built on Azure" badge SVG from microsoft.com/azure/certifications -->
+
+</div>
