@@ -61,26 +61,6 @@ In a single deploy, Factory IQ Accelerator provisions:
 
 > 📐 **Edit the diagram**: [`docs/assets/factory-iq-architecture.drawio`](docs/assets/factory-iq-architecture.drawio) — open with [draw.io](https://app.diagrams.net)
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Factory IQ Platform                               │
-│                                                                             │
-│  ┌──────────────────┐    ┌──────────────────────────────┐    ┌───────────┐ │
-│  │  Microsoft Fabric │    │     Azure AI Foundry         │    │   M365    │ │
-│  │                  │    │                              │    │           │ │
-│  │  Eventhouse      │◄──►│  Operations    Maintenance   │◄──►│  Work IQ  │ │
-│  │  KQL Database    │    │  Quality       Plant Manager │    │  (Tasks)  │ │
-│  │  Eventstream     │    │  Cont. Improv.               │    │           │ │
-│  │  Data Agent (MCP)│    │                              │    └───────────┘ │
-│  └──────────────────┘    │  ┌──────────┐ ┌──────────┐  │                  │
-│                          │  │Foundry IQ│ │ Web IQ   │  │    ┌───────────┐ │
-│  ┌──────────────────┐    │  │ (AI Srch)│ │          │  │    │  Storage  │ │
-│  │   ISA-95 Model   │    │  └──────────┘ └──────────┘  │    │  Account  │ │
-│  │  Shared Ontology │    └──────────────────────────────┘    └───────────┘ │
-│  └──────────────────┘                                                       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
 ---
 
 ## Manufacturing Agents
