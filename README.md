@@ -58,13 +58,14 @@ In a single deploy, Factory IQ Accelerator provisions:
 
 ## Architecture
 
-<!-- PLACEHOLDER: Architecture diagram -->
-<!-- Image: docs/assets/architecture-diagram.png -->
-<!-- Specs: 1400×800px light background (also provide -dark.png variant), export from diagrams.net or Visio -->
-<!-- Content: Three-column diagram: left=Fabric (Eventhouse, Eventstream, Data Agent), center=Foundry (5 agents, connections), right=Microsoft 365 (Work IQ). Arrows show data flows. ISA-95 model sits at the bottom as shared foundation. -->
+<!-- Architecture diagram — open docs/assets/factory-iq-architecture.drawio in https://aka.ms/excalidraw or draw.io -->
+<!-- Export as PNG → docs/assets/architecture-diagram.png for this badge -->
+<!-- PLACEHOLDER: docs/assets/architecture-diagram.png (export from the .drawio file below) -->
 <div align="center">
 <img src="docs/assets/architecture-diagram.png" alt="Factory IQ Architecture" width="900"/>
 </div>
+
+> 📐 **Edit the diagram**: [`docs/assets/factory-iq-architecture.drawio`](docs/assets/factory-iq-architecture.drawio) — open with [draw.io](https://app.diagrams.net)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
