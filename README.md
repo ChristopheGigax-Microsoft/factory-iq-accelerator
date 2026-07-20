@@ -59,8 +59,6 @@ In a single deploy, Factory IQ Accelerator provisions:
 <img src="docs/assets/factory-iq-architecture.drawio.png" alt="Factory IQ Architecture" width="960"/>
 </div>
 
-> 📐 **Edit the diagram**: [`docs/assets/factory-iq-architecture.drawio`](docs/assets/factory-iq-architecture.drawio) — open with [draw.io](https://app.diagrams.net)
-
 ---
 
 ## Manufacturing Agents
