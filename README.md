@@ -1,14 +1,8 @@
 <div align="center">
 
-<!-- PLACEHOLDER: Logo -->
-<!-- Image: docs/assets/factory-iq-logo.png -->
-<!-- Specs: SVG or PNG, white background, ~600×160px, dark-mode variant optional -->
-<!-- Content: "Factory IQ" wordmark with a subtle industrial/AI icon — e.g. a factory silhouette merged with a circuit/brain motif -->
-<img src="docs/assets/accelerator-hero.svg" alt="Factory IQ Accelerator" width="600"/>
+# 🏭 Factory IQ Accelerator
 
-<br/>
-
-**Industrial AI Platform Accelerator — from raw Azure subscription to live manufacturing agents in one deploy.**
+### Industrial AI Platform — from raw Azure subscription to live manufacturing agents in one deploy.
 
 <br/>
 
