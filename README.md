@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="docs/assets/factory-iq-logo.png" alt="Factory IQ Accelerator" width="200"/>
-
 # 🏭 Factory IQ Accelerator
 
 ### Industrial AI Platform — from raw Azure subscription to live manufacturing agents in one deploy.
@@ -36,7 +34,7 @@ Standing up the full data and AI stack (data platform, ontology, telemetry pipel
 ## What It Does
 
 <div align="center">
-<img src="docs/assets/screenshot-dashboard.png" alt="Factory IQ — Plant dashboard" width="860"/>
+<img src="docs/assets/factory-iq-logo.png" alt="Factory IQ — Plant dashboard" width="860"/>
 </div>
 
 <br/>
@@ -89,12 +87,9 @@ In a single deploy, Factory IQ Accelerator provisions:
 
 Five production-ready agents, each covering a distinct manufacturing domain:
 
-<!-- PLACEHOLDER: Agents feature grid -->
-<!-- Image: docs/assets/agents-grid.png -->
-<!-- Specs: 1280×500px, 5-column card layout (or 3+2), dark background (#1e1e2e or similar) -->
-<!-- Content: Each card = agent name + icon + 2-line description. Icons: wrench (maintenance), chart-line (operations), beaker (quality), building (plant manager), arrows-repeat (CI). -->
+<!-- Agents screenshot -->
 <div align="center">
-<img src="docs/assets/agents-grid.png" alt="Manufacturing Agents" width="860"/>
+<img src="docs/assets/screenshot-dashboard.png" alt="Manufacturing Agents" width="860"/>
 </div>
 
 <br/>
