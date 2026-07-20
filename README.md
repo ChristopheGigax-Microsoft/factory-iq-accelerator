@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/factory-iq-logo.png" alt="Factory IQ Accelerator" width="200"/>
+
 # 🏭 Factory IQ Accelerator
 
 ### Industrial AI Platform — from raw Azure subscription to live manufacturing agents in one deploy.
@@ -33,10 +35,6 @@ Standing up the full data and AI stack (data platform, ontology, telemetry pipel
 
 ## What It Does
 
-<!-- PLACEHOLDER: Hero dashboard screenshot -->
-<!-- Image: docs/assets/screenshot-dashboard.png -->
-<!-- Specs: 1280×720px, browser-framed or borderless crop of the Foundry portal/Fabric portal -->
-<!-- Content: Either the Foundry Agents list in the portal OR a Fabric Eventhouse KQL query returning real OEE data -->
 <div align="center">
 <img src="docs/assets/screenshot-dashboard.png" alt="Factory IQ — Plant dashboard" width="860"/>
 </div>
@@ -58,11 +56,9 @@ In a single deploy, Factory IQ Accelerator provisions:
 
 ## Architecture
 
-<!-- Architecture diagram — open docs/assets/factory-iq-architecture.drawio in https://aka.ms/excalidraw or draw.io -->
-<!-- Export as PNG → docs/assets/architecture-diagram.png for this badge -->
-<!-- PLACEHOLDER: docs/assets/architecture-diagram.png (export from the .drawio file below) -->
+<!-- Architecture diagram — open docs/assets/factory-iq-architecture.drawio in draw.io -->
 <div align="center">
-<img src="docs/assets/architecture-diagram.png" alt="Factory IQ Architecture" width="900"/>
+<img src="docs/assets/factory-iq-architecture.drawio.png" alt="Factory IQ Architecture" width="960"/>
 </div>
 
 > 📐 **Edit the diagram**: [`docs/assets/factory-iq-architecture.drawio`](docs/assets/factory-iq-architecture.drawio) — open with [draw.io](https://app.diagrams.net)
