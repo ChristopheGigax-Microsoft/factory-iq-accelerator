@@ -170,7 +170,9 @@ terraform -chdir=infra/terraform apply -var-file=environments/dev.tfvars -auto-a
 terraform -chdir=infra/terraform output -json connection_contract > connection.json
 ```
 
-### 4. Deploy ISA-95 model
+### 4. (Optional) Deploy ISA-95 model
+
+Skip this step if you only want to validate infrastructure + agent wiring. Run it when you want the ISA-95 schema/hierarchy baseline deployed to Fabric.
 
 ```bash
 python shared/scripts/deploy-model.py \
@@ -288,6 +290,16 @@ No forking needed. Use these files as your customization surface:
 | [Terraform](https://www.terraform.io) + [Fabric Provider](https://registry.terraform.io/providers/microsoft/fabric) | IaC engine A |
 | [Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/) | IaC engine B |
 | [ISA-95](https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa95) | Manufacturing ontology standard |
+
+---
+
+## Current Limitations & Preview Notes
+
+- Agent runtime currently depends on prerelease SDKs: `Azure.AI.Projects` (`2.1.0-beta.4`) and `Microsoft.Agents.AI.Foundry` (`1.13.0-preview.260703.1`).
+- Foundry project connections for Fabric IQ and Work IQ use preview connector types (`fabric_iq_preview`, `work_iq_preview`) and can evolve with Foundry updates.
+- Foundry IQ knowledge base MCP endpoint currently uses a preview API version (`2026-05-01-preview`).
+- Work IQ integration is optional and tenant-dependent (connection target, permissions, and M365 availability must be provided by the customer tenant).
+- Fabric Data Agent endpoint can be region/tenant specific; in some environments you must provide the exact portal-discovered MCP target URL.
 
 ---
 
