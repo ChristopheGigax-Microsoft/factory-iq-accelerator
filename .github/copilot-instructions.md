@@ -1,4 +1,1 @@
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read [specs/002-add-fabric-apps-sql/plan.md](specs/002-add-fabric-apps-sql/plan.md).
-<!-- SPECKIT END -->
+Use repository docs (`README.md`, `docs/`, `infra/*/README.md`) as the source of truth for architecture, setup, and operations.

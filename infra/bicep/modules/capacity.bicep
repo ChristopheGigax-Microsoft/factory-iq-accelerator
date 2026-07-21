@@ -9,6 +9,11 @@ resource capacity 'Microsoft.Fabric/capacities@2023-11-01' = {
     name: capacitySku
     tier: 'Fabric'
   }
+  properties: {
+    administration: {
+      members: []
+    }
+  }
 }
 
 output capacityId string = capacity.id

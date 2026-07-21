@@ -60,9 +60,6 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
   parent: foundry
   name: projectName
   location: location
-  sku: {
-    name: 'S0'
-  }
   identity: {
     type: 'SystemAssigned'
   }
@@ -98,7 +95,7 @@ resource foundryIqKnowledgeBaseConnection 'Microsoft.CognitiveServices/accounts/
   parent: project
   name: 'foundry-iq-kb-connection'
   properties: {
-    authType: 'ProjectManagedIdentity'
+    authType: any('ProjectManagedIdentity')
     category: 'RemoteTool'
     isSharedToAll: true
     target: 'https://${aiSearchName}.search.windows.net/knowledgebases/${knowledgeBaseName}/mcp?api-version=2026-05-01-preview'
@@ -117,7 +114,7 @@ resource fabricIqDataAgentConnection 'Microsoft.CognitiveServices/accounts/proje
   parent: project
   name: 'fabric-iq-data-agent-connection'
   properties: {
-    authType: 'UserEntraToken'
+    authType: any('UserEntraToken')
     category: 'RemoteTool'
     isSharedToAll: false
     target: resolvedFabricDataAgentMcpTarget
@@ -137,7 +134,7 @@ resource workIqConnection 'Microsoft.CognitiveServices/accounts/projects/connect
   parent: project
   name: 'work-iq-connection'
   properties: {
-    authType: 'UserEntraToken'
+    authType: any('UserEntraToken')
     category: 'RemoteTool'
     isSharedToAll: false
     target: workIqConnectionTarget

@@ -34,10 +34,10 @@ moved {
 }
 
 locals {
-  base_name                     = "fiq-${var.plant_code}-${var.environment}"
-  workspace_id                  = var.workspace_id
-  fabric_data_agent_mcp_target  = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
-  work_iq_connection_target     = trimspace(var.work_iq_connection_target)
+  base_name                    = "fiq-${var.plant_code}-${var.environment}"
+  workspace_id                 = var.workspace_id
+  fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
+  work_iq_connection_target    = trimspace(var.work_iq_connection_target)
 }
 
 resource "azurerm_resource_group" "this" {
