@@ -1,0 +1,36 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "RequestId",
+        "targetPropertyId": "7111000000000000001"
+      },
+      {
+        "sourceColumnName": "WorkCenterId",
+        "targetPropertyId": "7111000000000000002"
+      },
+      {
+        "sourceColumnName": "ProductId",
+        "targetPropertyId": "7111000000000000003"
+      },
+      {
+        "sourceColumnName": "QuantityRequested",
+        "targetPropertyId": "7111000000000000004"
+      },
+      {
+        "sourceColumnName": "Status",
+        "targetPropertyId": "7111000000000000005"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "KustoTable",
+      "workspaceId": "{{ .WORKSPACE_ID }}",
+      "itemId": "{{ .EVENTHOUSE_ID }}",
+      "clusterUri": "{{ .KQL_QUERY_URI }}",
+      "databaseName": "{{ .KQL_DATABASE_NAME }}",
+      "sourceTableName": "WorkRequest"
+    }
+  }
+}

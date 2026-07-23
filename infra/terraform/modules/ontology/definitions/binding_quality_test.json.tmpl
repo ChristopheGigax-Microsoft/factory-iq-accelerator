@@ -1,0 +1,40 @@
+{
+  "id": "33333333-3333-3333-3333-333333333333",
+  "dataBindingConfiguration": {
+    "dataBindingType": "NonTimeSeries",
+    "propertyBindings": [
+      {
+        "sourceColumnName": "TestId",
+        "targetPropertyId": "7131000000000000001"
+      },
+      {
+        "sourceColumnName": "ResponseId",
+        "targetPropertyId": "7131000000000000002"
+      },
+      {
+        "sourceColumnName": "WorkUnitId",
+        "targetPropertyId": "7131000000000000003"
+      },
+      {
+        "sourceColumnName": "Result",
+        "targetPropertyId": "7131000000000000004"
+      },
+      {
+        "sourceColumnName": "Severity",
+        "targetPropertyId": "7131000000000000005"
+      },
+      {
+        "sourceColumnName": "Timestamp",
+        "targetPropertyId": "7131000000000000006"
+      }
+    ],
+    "sourceTableProperties": {
+      "sourceType": "KustoTable",
+      "workspaceId": "{{ .WORKSPACE_ID }}",
+      "itemId": "{{ .EVENTHOUSE_ID }}",
+      "clusterUri": "{{ .KQL_QUERY_URI }}",
+      "databaseName": "{{ .KQL_DATABASE_NAME }}",
+      "sourceTableName": "QualityTestResult"
+    }
+  }
+}

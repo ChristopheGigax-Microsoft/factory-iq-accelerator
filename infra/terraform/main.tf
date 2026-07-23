@@ -28,6 +28,10 @@ provider "azapi" {
   tenant_id       = var.tenant_id
 }
 
+provider "fabric" {
+  preview = true
+}
+
 moved {
   from = module.ai_foundry.azapi_resource.search_connection
   to   = azapi_resource.search_connection
@@ -36,6 +40,7 @@ moved {
 locals {
   base_name                    = "fiq-${var.plant_code}-${var.environment}"
   workspace_id                 = var.workspace_id
+  ontology_name                = "${local.base_name}-ontology"
   fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
   work_iq_connection_target    = trimspace(var.work_iq_connection_target)
 }
@@ -65,6 +70,18 @@ module "data_agent" {
   description       = "Factory IQ Data Agent for plant ${var.plant_code}"
   workspace_id      = local.workspace_id
   kql_database_id   = module.eventhouse.kql_database_id
+  kql_database_name = module.eventhouse.kql_database_name
+  ontology_id       = module.ontology.ontology_id
+  ontology_name     = module.ontology.ontology_name
+}
+
+module "ontology" {
+  source            = "./modules/ontology"
+  name              = local.ontology_name
+  description       = "Factory IQ ISA-95 operations ontology for plant ${var.plant_code}"
+  workspace_id      = local.workspace_id
+  eventhouse_id     = module.eventhouse.eventhouse_id
+  kql_query_uri     = module.eventhouse.kql_query_uri
   kql_database_name = module.eventhouse.kql_database_name
 }
 

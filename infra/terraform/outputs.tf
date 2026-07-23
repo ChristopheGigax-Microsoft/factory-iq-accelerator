@@ -9,6 +9,8 @@ output "connection_contract" {
     eventhouseId                       = module.eventhouse.eventhouse_id
     kqlDatabase                        = module.eventhouse.kql_database_name
     dataAgentId                        = module.data_agent.data_agent_id
+    fabricOntologyId                   = module.ontology.ontology_id
+    fabricOntologyName                 = module.ontology.ontology_name
     foundryEndpoint                    = module.ai_foundry.foundry_endpoint
     foundryProjectId                   = module.ai_foundry.project_id
     foundryIqProjectConnectionName     = azapi_resource.foundry_iq_kb_connection.name

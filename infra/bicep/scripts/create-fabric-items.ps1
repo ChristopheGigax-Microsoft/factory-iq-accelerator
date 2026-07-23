@@ -3,7 +3,8 @@ param(
   [Parameter(Mandatory = $true)][string]$EventhouseName,
   [Parameter(Mandatory = $true)][string]$KqlDatabaseName,
   [Parameter(Mandatory = $true)][string]$EventstreamName,
-  [Parameter(Mandatory = $true)][string]$DataAgentName
+  [Parameter(Mandatory = $true)][string]$DataAgentName,
+  [Parameter(Mandatory = $true)][string]$OntologyName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -46,6 +47,40 @@ Write-Host "Creating eventstream: $EventstreamName"
 $eventstreamBody = @{ displayName = $EventstreamName; type = "Eventstream" } | ConvertTo-Json
 Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items" -Method Post -Headers $headers -Body $eventstreamBody
 Write-Host "Eventstream created"
+
+# --- Create Ontology ---
+Write-Host "Creating ontology: $OntologyName"
+$ontologyPlatform = @{
+  metadata = @{
+    type = "Ontology"
+    displayName = $OntologyName
+  }
+} | ConvertTo-Json -Depth 3
+
+$ontologyDefinition = @(
+  @{
+    path        = ".platform"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($ontologyPlatform))
+    payloadType = "InlineBase64"
+  },
+  @{
+    path        = "definition.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("{}"))
+    payloadType = "InlineBase64"
+  }
+)
+
+$ontologyBody = @{
+  displayName = $OntologyName
+  type        = "Ontology"
+  definition  = @{
+    parts = $ontologyDefinition
+  }
+} | ConvertTo-Json -Depth 6
+
+$ontology = Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items" -Method Post -Headers $headers -Body $ontologyBody
+$ontologyId = $ontology.id
+Write-Host "Ontology created: $ontologyId"
 
 # --- Create Data Agent with Eventhouse data source ---
 Write-Host "Creating data agent: $DataAgentName"
@@ -125,6 +160,15 @@ $datasourceKusto = @{
   )
 } | ConvertTo-Json -Depth 4
 
+$datasourceOntology = @{
+  '$schema'       = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition/dataSource/1.0.0/schema.json"
+  artifactId      = $ontologyId
+  workspaceId     = $workspaceId
+  displayName     = $OntologyName
+  type            = "ontology"
+  userDescription = "Factory IQ ISA-95 ontology source for business semantics, KPI definitions, and relationship-aware reasoning."
+} | ConvertTo-Json -Depth 3
+
 $parts = @(
   @{
     path        = "Files/Config/data_agent.json"
@@ -140,6 +184,11 @@ $parts = @(
     path        = "Files/Config/draft/kusto-$KqlDatabaseName/datasource.json"
     payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceKusto))
     payloadType = "InlineBase64"
+  },
+  @{
+    path        = "Files/Config/draft/ontology-$OntologyName/datasource.json"
+    payload     = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($datasourceOntology))
+    payloadType = "InlineBase64"
   }
 )
 
@@ -152,4 +201,4 @@ $dataAgentBody = @{
 } | ConvertTo-Json -Depth 5
 
 Invoke-RestMethod -Uri "$fabricBaseUrl/workspaces/$workspaceId/items" -Method Post -Headers $headers -Body $dataAgentBody
-Write-Host "Data Agent created with Eventhouse data source, table selection, and AI instructions"
+Write-Host "Data Agent created with Eventhouse + Ontology sources, table selection, and AI instructions"

@@ -44,3 +44,7 @@ output "kql_database_id" {
 output "kql_database_name" {
   value = var.kql_database_name
 }
+
+output "kql_query_uri" {
+  value = fabric_kql_database.this.properties.query_service_uri
+}
