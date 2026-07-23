@@ -1,0 +1,86 @@
+.create-merge table TelemetryLanding (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  Signal:string,
+  Value:real,
+  Payload:dynamic
+)
+
+.create-merge table EquipmentTelemetry (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  Signal:string,
+  Value:real
+)
+
+.create-merge table EquipmentActual (
+  Timestamp:datetime,
+  WorkUnitId:string,
+  State:string,
+  StateReason:string,
+  OperatorId:string
+)
+
+.create-merge table WorkRequest (
+  RequestId:string,
+  WorkCenterId:string,
+  ProductId:string,
+  QuantityRequested:real,
+  UnitOfMeasure:string,
+  Priority:int,
+  ScheduledStart:datetime,
+  ScheduledEnd:datetime,
+  Status:string,
+  CreatedAt:datetime
+)
+
+.create-merge table WorkResponse (
+  ResponseId:string,
+  RequestId:string,
+  WorkCenterId:string,
+  ActualStart:datetime,
+  ActualEnd:datetime,
+  QuantityProduced:real,
+  QuantityRejected:real,
+  Status:string,
+  CompletedAt:datetime
+)
+
+.create-merge table MaterialActual (
+  Timestamp:datetime,
+  LotId:string,
+  MaterialDefinitionId:string,
+  WorkCenterId:string,
+  RequestId:string,
+  Direction:string,
+  Quantity:real,
+  UnitOfMeasure:string
+)
+
+.create-merge table QualityTestResult (
+  Timestamp:datetime,
+  TestId:string,
+  WorkUnitId:string,
+  ResponseId:string,
+  LotId:string,
+  TestSpecificationId:string,
+  Parameter:string,
+  MeasuredValue:real,
+  LowerLimit:real,
+  UpperLimit:real,
+  UnitOfMeasure:string,
+  Result:string,
+  Severity:string
+)
+
+.alter table EquipmentTelemetry policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | where isnotnull(Timestamp) and isnotempty(WorkUnitId) and isnotempty(Signal) | project Timestamp, WorkUnitId, Signal, Value","IsTransactional":false,"PropagateIngestionProperties":true}]'
+
+.alter table EquipmentActual policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | extend p=todynamic(Payload) | where isnotempty(tostring(p.State)) | project Timestamp=coalesce(todatetime(p.Timestamp), Timestamp), WorkUnitId=coalesce(tostring(p.WorkUnitId), WorkUnitId), State=tostring(p.State), StateReason=tostring(p.StateReason), OperatorId=tostring(p.OperatorId)","IsTransactional":false,"PropagateIngestionProperties":true}]'
+
+.alter table WorkRequest policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | extend p=todynamic(Payload) | where isnotempty(tostring(p.RequestId)) | project RequestId=tostring(p.RequestId), WorkCenterId=tostring(p.WorkCenterId), ProductId=tostring(p.ProductId), QuantityRequested=toreal(p.QuantityRequested), UnitOfMeasure=tostring(p.UnitOfMeasure), Priority=toint(p.Priority), ScheduledStart=todatetime(p.ScheduledStart), ScheduledEnd=todatetime(p.ScheduledEnd), Status=tostring(p.Status), CreatedAt=coalesce(todatetime(p.CreatedAt), Timestamp)","IsTransactional":false,"PropagateIngestionProperties":true}]'
+
+.alter table WorkResponse policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | extend p=todynamic(Payload) | where isnotempty(tostring(p.ResponseId)) | project ResponseId=tostring(p.ResponseId), RequestId=tostring(p.RequestId), WorkCenterId=tostring(p.WorkCenterId), ActualStart=todatetime(p.ActualStart), ActualEnd=todatetime(p.ActualEnd), QuantityProduced=toreal(p.QuantityProduced), QuantityRejected=toreal(p.QuantityRejected), Status=tostring(p.Status), CompletedAt=coalesce(todatetime(p.CompletedAt), Timestamp)","IsTransactional":false,"PropagateIngestionProperties":true}]'
+
+.alter table MaterialActual policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | extend p=todynamic(Payload) | where isnotempty(tostring(p.LotId)) and isnotempty(tostring(p.Direction)) | project Timestamp=coalesce(todatetime(p.Timestamp), Timestamp), LotId=tostring(p.LotId), MaterialDefinitionId=tostring(p.MaterialDefinitionId), WorkCenterId=tostring(p.WorkCenterId), RequestId=tostring(p.RequestId), Direction=tostring(p.Direction), Quantity=toreal(p.Quantity), UnitOfMeasure=tostring(p.UnitOfMeasure)","IsTransactional":false,"PropagateIngestionProperties":true}]'
+
+.alter table QualityTestResult policy update @'[{"IsEnabled":true,"Source":"TelemetryLanding","Query":"TelemetryLanding | extend p=todynamic(Payload) | where isnotempty(tostring(p.TestId)) | project Timestamp=coalesce(todatetime(p.Timestamp), Timestamp), TestId=tostring(p.TestId), WorkUnitId=tostring(p.WorkUnitId), ResponseId=tostring(p.ResponseId), LotId=tostring(p.LotId), TestSpecificationId=tostring(p.TestSpecificationId), Parameter=tostring(p.Parameter), MeasuredValue=toreal(p.MeasuredValue), LowerLimit=toreal(p.LowerLimit), UpperLimit=toreal(p.UpperLimit), UnitOfMeasure=tostring(p.UnitOfMeasure), Result=tostring(p.Result), Severity=tostring(p.Severity)","IsTransactional":false,"PropagateIngestionProperties":true}]'

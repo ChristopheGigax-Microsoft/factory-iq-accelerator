@@ -113,6 +113,11 @@ terraform -chdir=infra/terraform output \
   -json connection_contract > connection.json
 ```
 
+The same Terraform apply also provisions the Eventhouse **Bronze/Silver** model used by RTI dashboards:
+- `TelemetryLanding` (Bronze)
+- `EquipmentTelemetry`, `EquipmentActual`, `WorkRequest`, `WorkResponse`, `MaterialActual`, `QualityTestResult` (Silver)
+- update policies from Bronze to Silver
+
 ---
 
 ## 🚀 Quick Start

@@ -34,6 +34,16 @@ Terraform provisions these logical modules:
 - `eventhouse`
 - `eventstream`
 
+### Eventhouse Bronze/Silver model
+
+The Eventhouse module provisions and maintains:
+
+- **Bronze** ingestion table: `TelemetryLanding`
+- **Silver** operational tables: `EquipmentTelemetry`, `EquipmentActual`, `WorkRequest`, `WorkResponse`, `MaterialActual`, `QualityTestResult`
+- **Update policies** from `TelemetryLanding` to each Silver table for automatic projection when matching payload fields exist.
+
+Real-time dashboard/queryset assets are intentionally wired to the Silver tables.
+
 ## Contract-Driven Integration
 
 Deployment outputs a single artifact `connection.json`.
