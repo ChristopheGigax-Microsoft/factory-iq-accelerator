@@ -50,6 +50,7 @@ resource "fabric_kql_dashboard" "realtime" {
       tokens = {
         "KQL_QUERY_URI"     = fabric_kql_database.this.properties.query_service_uri
         "KQL_DATABASE_NAME" = var.kql_database_name
+        "KQL_WORKSPACE_ID"  = var.workspace_id
       }
     }
   }
