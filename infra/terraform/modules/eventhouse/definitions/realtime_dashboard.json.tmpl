@@ -1,0 +1,44 @@
+{
+  "autoRefresh": {
+    "enabled": true
+  },
+  "baseQueries": [],
+  "tiles": [],
+  "dataSources": [
+    {
+      "id": "9a9f91ee-3d69-4f4a-8eb8-fd2d0920a622",
+      "name": "Factory IQ Eventhouse",
+      "clusterUri": "{{ .KQL_QUERY_URI }}",
+      "database": "{{ .KQL_DATABASE_NAME }}",
+      "kind": "KQLDatabase",
+      "scopeId": "9a9f91ee-3d69-4f4a-8eb8-fd2d0920a622"
+    }
+  ],
+  "pages": [
+    {
+      "name": "Machine performance overview",
+      "id": "be683a2b-4119-483f-a477-5e7ac959b8c8"
+    }
+  ],
+  "parameters": [
+    {
+      "kind": "duration",
+      "id": "b6d3f809-8fcb-4a9e-8fa8-0c6dfaf25f6d",
+      "displayName": "Time range",
+      "description": "Time range shared by dashboard visuals.",
+      "beginVariableName": "_startTime",
+      "endVariableName": "_endTime",
+      "defaultValue": {
+        "kind": "dynamic",
+        "count": 1,
+        "unit": "hours"
+      },
+      "showOnPages": {
+        "kind": "all"
+      }
+    }
+  ],
+  "queries": [],
+  "schema_version": "52",
+  "title": "Factory IQ Real-Time Machine Performance"
+}

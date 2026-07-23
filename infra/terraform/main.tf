@@ -51,10 +51,12 @@ resource "azurerm_resource_group" "this" {
 }
 
 module "eventhouse" {
-  source            = "./modules/eventhouse"
-  name              = "${local.base_name}-eh"
-  workspace_id      = local.workspace_id
-  kql_database_name = "${local.base_name}-kql"
+  source             = "./modules/eventhouse"
+  name               = "${local.base_name}-eh"
+  workspace_id       = local.workspace_id
+  kql_database_name  = "${local.base_name}-kql"
+  kql_queryset_name  = "${local.base_name}-rtqs"
+  kql_dashboard_name = "${local.base_name}-rtd"
 }
 
 module "eventstream" {

@@ -18,6 +18,8 @@ var kqlDatabaseName = '${baseName}-kql'
 var eventstreamName = '${baseName}-es'
 var dataAgentName = '${baseName}-agent'
 var ontologyName = replace('${baseName}_ontology', '-', '_')
+var querysetName = '${baseName}-rtqs'
+var dashboardName = '${baseName}-rtd'
 var aiSearchName = '${baseName}-search'
 var storageAccountName = replace('fiq${plantCode}${environment}sa', '-', '')
 var aiProjectName = '${baseName}-ai-project'
@@ -86,7 +88,7 @@ resource createItems 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
     timeout: 'PT30M'
     retentionInterval: 'P1D'
     scriptContent: loadTextContent('./scripts/create-fabric-items.ps1')
-    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName} -DataAgentName ${dataAgentName} -OntologyName ${ontologyName}'
+    arguments: '-WorkspaceName ${workspaceName} -EventhouseName ${eventhouseName} -KqlDatabaseName ${kqlDatabaseName} -EventstreamName ${eventstreamName} -DataAgentName ${dataAgentName} -OntologyName ${ontologyName} -QuerysetName ${querysetName} -DashboardName ${dashboardName}'
   }
 }
 

@@ -44,6 +44,7 @@ In a single deploy, Factory IQ Accelerator provisions:
 | Layer | What Gets Built |
 |-------|----------------|
 | 🏭 **Data Foundation** | Microsoft Fabric capacity, workspace, Eventhouse, KQL database, Eventstream |
+| 📊 **Real-Time Monitoring** | Fabric KQL Queryset + KQL Dashboard bootstrap for machine performance verification |
 | 📐 **Domain Model** | ISA-95-aligned KQL tables, update policies, and plant hierarchy seeding |
 | 🔍 **Search & Knowledge** | Azure AI Search, knowledge base, vector index over maintenance/quality docs |
 | 🤖 **AI Agents** | 5 manufacturing agents on Azure AI Foundry (C#/.NET 10) |
