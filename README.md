@@ -47,7 +47,7 @@ In a single deploy, Factory IQ Accelerator provisions:
 | 📐 **Domain Model** | ISA-95-aligned KQL tables, update policies, and plant hierarchy seeding |
 | 🔍 **Search & Knowledge** | Azure AI Search, knowledge base, vector index over maintenance/quality docs |
 | 🤖 **AI Agents** | 5 manufacturing agents on Azure AI Foundry (C#/.NET 10) |
-| 🔗 **Live Connectors** | Fabric Data Agent (MCP), Work IQ (M365 tasks), Foundry IQ (RAG) |
+| 🔗 **Live Connectors** | Fabric Data Agent (MCP, optionally ontology-enriched), Work IQ (M365 tasks), Foundry IQ (RAG) |
 | 📄 **Handoff Contract** | `connection.json` — engine-agnostic output contract for downstream tools |
 
 ---
@@ -74,11 +74,11 @@ Five production-ready agents, each covering a distinct manufacturing domain:
 
 | Agent | Role | Tools |
 |-------|------|-------|
-| ⚙️ **Operations** | Monitor OEE, detect performance deviations, explain root causes | Fabric Data Agent · Foundry IQ KB |
-| 🔧 **Maintenance** | Correlate alarms, asset history, sensor trends; recommend corrective actions | Fabric Data Agent · Foundry IQ KB · **Work IQ** |
-| 🔬 **Quality** | Investigate scrap, SPC drift, batch failures, defect patterns | Fabric Data Agent · Foundry IQ KB · Web IQ |
-| 🏢 **Plant Manager** | Summarize plant performance, escalate critical risks, track open actions | Fabric Data Agent · Foundry IQ KB · **Work IQ** |
-| 🔁 **Continuous Improvement** | Identify chronic losses, kaizen opportunities, improvement trends | Fabric Data Agent · Foundry IQ KB · Web IQ |
+| ⚙️ **Operations** | Monitor OEE, detect performance deviations, explain root causes | Fabric Data Agent (KQL + Ontology source) · Foundry IQ KB |
+| 🔧 **Maintenance** | Correlate alarms, asset history, sensor trends; recommend corrective actions | Fabric Data Agent (KQL + Ontology source) · Foundry IQ KB · **Work IQ** |
+| 🔬 **Quality** | Investigate scrap, SPC drift, batch failures, defect patterns | Fabric Data Agent (KQL + Ontology source) · Foundry IQ KB · Web IQ |
+| 🏢 **Plant Manager** | Summarize plant performance, escalate critical risks, track open actions | Fabric Data Agent (KQL + Ontology source) · Foundry IQ KB · **Work IQ** |
+| 🔁 **Continuous Improvement** | Identify chronic losses, kaizen opportunities, improvement trends | Fabric Data Agent (KQL + Ontology source) · Foundry IQ KB · Web IQ |
 
 Agents are registered as **versioned Foundry Agents** and stay persistent in the portal between runs.
 
@@ -99,6 +99,8 @@ Agents are registered as **versioned Foundry Agents** and stay persistent in the
 | **Web IQ** | Bing / web search for benchmarks and supplier specs | Quality · Continuous Improvement |
 
 ---
+
+> Ontology integration pattern: add Ontology as a source inside the Fabric Data Agent, then keep Foundry connected to the Data Agent MCP endpoint.
 
 ## IaC Engines
 
@@ -273,6 +275,7 @@ No forking needed. Use these files as your customization surface:
 | [Terraform README](infra/terraform/README.md) | Terraform-specific deployment guide |
 | [Bicep README](infra/bicep/README.md) | Bicep-specific deployment guide |
 | [ISA-95 Model](shared/isa95-model/README.md) | Model schema, hierarchy, extension guide |
+| [Fabric Ontology](docs/fabric-ontology.md) | Ontology design + Data Agent integration pattern |
 | [Foundry Agents (src)](src/foundry-agents/README.md) | Agent developer guide, env vars, local run |
 
 ---

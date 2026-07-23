@@ -1,0 +1,163 @@
+version: 1
+name: factory_iq_ontology
+description: >
+  ISA-95 aligned ontology blueprint for Factory IQ Accelerator.
+  Designed to be attached to Fabric Data Agent as an ontology source.
+
+entityTypes:
+  - name: Enterprise
+    keys: [enterpriseId]
+    attributes: [enterpriseId, enterpriseName]
+  - name: Site
+    keys: [siteId]
+    attributes: [siteId, siteName, enterpriseId]
+  - name: Area
+    keys: [areaId]
+    attributes: [areaId, areaName, siteId]
+  - name: WorkCenter
+    keys: [workCenterId]
+    attributes: [workCenterId, workCenterName, areaId]
+  - name: WorkUnit
+    keys: [workUnitId]
+    attributes: [workUnitId, workUnitName, workCenterId]
+  - name: WorkRequest
+    keys: [requestId]
+    attributes:
+      [
+        requestId,
+        workCenterId,
+        productId,
+        quantityRequested,
+        unitOfMeasure,
+        priority,
+        scheduledStart,
+        scheduledEnd,
+        status
+      ]
+  - name: WorkResponse
+    keys: [responseId]
+    attributes:
+      [
+        responseId,
+        requestId,
+        workCenterId,
+        actualStart,
+        actualEnd,
+        quantityProduced,
+        quantityRejected,
+        status
+      ]
+  - name: MaterialLot
+    keys: [lotId]
+    attributes:
+      [
+        lotId,
+        materialDefinitionId,
+        requestId,
+        workCenterId,
+        direction,
+        quantity,
+        unitOfMeasure
+      ]
+  - name: QualityTest
+    keys: [testId]
+    attributes:
+      [
+        testId,
+        responseId,
+        lotId,
+        workUnitId,
+        parameter,
+        measuredValue,
+        lowerLimit,
+        upperLimit,
+        result,
+        severity
+      ]
+  - name: EquipmentStateEvent
+    keys: [timestamp, workUnitId, state]
+    attributes: [timestamp, workUnitId, state, stateReason, operatorId]
+  - name: TelemetrySignal
+    keys: [timestamp, workUnitId, signal]
+    attributes: [timestamp, workUnitId, signal, value]
+
+relationshipTypes:
+  - name: containsSite
+    source: Enterprise
+    target: Site
+  - name: containsArea
+    source: Site
+    target: Area
+  - name: containsWorkCenter
+    source: Area
+    target: WorkCenter
+  - name: containsWorkUnit
+    source: WorkCenter
+    target: WorkUnit
+  - name: executesRequest
+    source: WorkCenter
+    target: WorkRequest
+  - name: fulfillsRequest
+    source: WorkResponse
+    target: WorkRequest
+  - name: emitsStateEvent
+    source: WorkUnit
+    target: EquipmentStateEvent
+  - name: emitsTelemetry
+    source: WorkUnit
+    target: TelemetrySignal
+  - name: validatesResponse
+    source: QualityTest
+    target: WorkResponse
+  - name: tracksLot
+    source: QualityTest
+    target: MaterialLot
+  - name: consumesLot
+    source: WorkRequest
+    target: MaterialLot
+  - name: producesLot
+    source: WorkResponse
+    target: MaterialLot
+
+semanticMetrics:
+  - name: OEE
+    description: Availability * Performance * Quality
+  - name: Availability
+    description: Running time divided by planned production time
+  - name: Performance
+    description: Actual throughput divided by ideal throughput
+  - name: QualityRate
+    description: Good units divided by total produced units
+  - name: ScrapRate
+    description: Rejected units divided by total produced units
+  - name: MTTR
+    description: Mean time to repair from fault events
+  - name: MTBF
+    description: Mean time between fault events
+  - name: ScheduleAdherence
+    description: Ratio of completed orders within scheduled window
+
+sourceMappings:
+  sql:
+    baselineNodes:
+      table: dbo.isa95_baseline_node
+      role: ISA-95 hierarchy baseline
+  kql:
+    equipmentStateEvents:
+      table: EquipmentActual
+      role: Equipment state timeline
+    telemetrySignals:
+      table: EquipmentTelemetry
+      role: Time-series process and machine signals
+    workRequests:
+      table: WorkRequest
+      role: Order demand and scheduling
+    workResponses:
+      table: WorkResponse
+      role: Execution outcomes
+    materialLots:
+      table: MaterialActual
+      role: Consumption and production traceability
+    qualityTests:
+      table: QualityTestResult
+      role: Quality checks and conformance

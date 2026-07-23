@@ -47,9 +47,13 @@ There are **two primary integration paths** between Microsoft Fabric and Azure A
 
 The Fabric Data Agent is already provisioned in the Fabric workspace (via IaC). Foundry agents call it through **Fabric IQ (OneLake Catalog)** to run natural-language queries that are translated into KQL against the Eventhouse. This path uses On-Behalf-Of (OBO) authorization.
 
+This accelerator intentionally keeps Foundry connected to the **Data Agent endpoint only** (`fabric-iq-data-agent-connection`), not directly to an ontology endpoint.
+
 ### 2. Fabric IQ (Semantic Layer)
 
 Fabric IQ is the semantic intelligence layer that provides ontology-grounded access to Fabric data. It ensures agents interpret data consistently using shared business definitions (entities, relationships, metrics). This prevents hallucination and provides reliable, contextual answers.
+
+When a Fabric Ontology is enabled, it must be added as a **data source inside the Fabric Data Agent**. Foundry integration remains unchanged.
 
 ## Agents
 
@@ -122,6 +126,20 @@ IaC also creates a **Fabric IQ project connection** (`fabric-iq-data-agent-conne
 For tenants requiring a region-scoped Fabric MCP endpoint, Terraform exposes `fabric_data_agent_mcp_target` to pass the exact portal-discovered URL.
 
 Each Factory IQ agent is registered with the **Fabric OneLake Catalog** tool (`fabric_iq_preview`) bound to this connection so agents can query live Fabric data.
+
+## Fabric Ontology in this accelerator
+
+Ontology integration is supported using this pattern:
+
+1. Create/refine Ontology in Fabric (preview).
+2. Add Ontology as an additional source in the Fabric Data Agent.
+3. Publish Data Agent.
+4. Keep Foundry agents connected to the same Data Agent MCP endpoint.
+
+Use:
+
+- `docs/fabric-ontology.md` for implementation steps.
+- `shared/ontology/factory-iq-ontology-blueprint.yaml` for the proposed ISA-95 ontology model.
 
 IaC also creates an optional **Work IQ project connection** (`work-iq-connection`) when `work_iq_connection_target` (Terraform) or `workIqConnectionTarget` (Bicep) is set:
 

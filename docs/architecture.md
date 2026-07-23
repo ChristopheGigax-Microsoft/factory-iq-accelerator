@@ -71,7 +71,7 @@ The accelerator includes an Azure AI Foundry project with 5 manufacturing agents
 
 ### Fabric ↔ Foundry Integration Paths
 1. **Fabric Data Agent**: Conversational KQL queries over Eventhouse telemetry (OBO auth)
-2. **Fabric IQ**: Semantic layer for ontology-grounded queries (shared entity model)
+2. **Fabric Ontology (via Data Agent)**: Semantic layer for ontology-grounded queries remains attached to Data Agent, not directly to Foundry
 
 ### RBAC
 All role assignments are provisioned via IaC (both Terraform and Bicep):
