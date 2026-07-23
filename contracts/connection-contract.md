@@ -32,7 +32,7 @@
 
 ## Producer / Consumer
 
-- Producer: Terraform or Bicep deployment outputs.
+- Producer: Terraform deployment outputs.
 - Consumer: `shared/scripts/deploy-model.py`.
 
 ## Validation Command Examples

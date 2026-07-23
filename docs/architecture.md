@@ -25,9 +25,9 @@ Examples:
 - Keep each generated name within engine/resource-specific length limits.
 - Use deterministic suffixes per resource type.
 
-## Engine Topology
+## Terraform Topology
 
-Each engine mirrors these logical modules:
+Terraform provisions these logical modules:
 
 - `capacity`
 - `workspace`
@@ -45,13 +45,13 @@ Model deployment consumes only this contract.
 - When `connection.json` contains `sqlBaseline` metadata, baseline seed writes target SQL tables in `shared/sql/baseline/`.
 - When SQL metadata is absent, the existing Eventhouse/KQL hierarchy seed behavior remains available as fallback.
 
-## Cross-Engine Parity Validation Checklist
+## Deployment Validation Checklist
 
-- Use equivalent input values (`plant_code`, `environment`, `region`, `capacity_sku`) for each engine.
-- Validate each engine emits a `connection.json` with all required contract fields.
+- Use expected input values (`plant_code`, `environment`, `region`, `capacity_sku`) for Terraform.
+- Validate Terraform emits a `connection.json` with all required contract fields.
 - Confirm naming outputs follow `fiq-{plant_code}-{environment}-{resource}` pattern.
-- Confirm deployed logical resources are equivalent: capacity, workspace, eventhouse, KQL database, eventstream.
-- Run model deployment twice for each engine output and verify second run is a no-op.
+- Confirm deployed logical resources are present: capacity, workspace, eventhouse, KQL database, eventstream.
+- Run model deployment twice from the same contract and verify second run is a no-op.
 
 ## Security Baselines
 
@@ -74,7 +74,7 @@ The accelerator includes an Azure AI Foundry project with 5 manufacturing agents
 2. **Fabric Ontology (via Data Agent)**: Semantic layer for ontology-grounded queries remains attached to Data Agent, not directly to Foundry
 
 ### RBAC
-All role assignments are provisioned via IaC (both Terraform and Bicep):
+All role assignments are provisioned via Terraform IaC:
 - Foundry Project MI → AI Search (reader + contributor)
 - Foundry Project MI → Storage (blob reader)
 - Foundry Project MI → OpenAI (user)

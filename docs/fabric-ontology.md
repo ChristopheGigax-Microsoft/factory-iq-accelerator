@@ -36,18 +36,6 @@ Implementation files:
 - `infra/terraform/main.tf`
 - `infra/terraform/outputs.tf`
 
-## Bicep implementation
-
-Bicep deployment script (`infra/bicep/scripts/create-fabric-items.ps1`) now:
-
-1. Creates Ontology item in the Fabric workspace.
-2. Creates Data Agent with:
-   - KQL datasource
-   - Ontology datasource
-3. Keeps the same Data Agent endpoint target for Foundry.
-
-`infra/bicep/main.bicep` now passes `OntologyName` to the script and emits `fabricOntologyName` in `connectionContract`.
-
 ## Ontology scope used by the accelerator
 
 The deployed ontology models manufacturing operations semantics centered on:

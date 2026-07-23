@@ -22,16 +22,16 @@
   </g>
 
   <text x="100" y="150" fill="#EAF6FF" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700">Factory IQ Accelerator</text>
-  <text x="100" y="200" fill="#B7DFFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="500">Fabric foundation for industrial data, deployed with your IaC engine of choice</text>
+  <text x="100" y="200" fill="#B7DFFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="500">Fabric foundation for industrial data, deployed with Terraform</text>
 
   <rect x="100" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
   <text x="130" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Terraform</text>
 
   <rect x="350" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
-  <text x="408" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Bicep</text>
+  <text x="418" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">AzAPI</text>
 
   <rect x="600" y="260" width="220" height="94" rx="14" fill="#0F3558" stroke="#6AB7FF"/>
-  <text x="656" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Pulumi</text>
+  <text x="630" y="306" fill="#DFF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">AzureRM</text>
 
   <rect x="880" y="246" width="220" height="122" rx="16" fill="#123F66" stroke="#39D2C0"/>
   <text x="912" y="296" fill="#C8FFF7" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700">shared/</text>
@@ -44,5 +44,5 @@
   <rect x="220" y="418" width="760" height="92" rx="18" fill="#0E3252" stroke="#7EC3FF"/>
   <text x="248" y="457" fill="#E5F5FF" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700">Output Contract:</text>
   <text x="474" y="457" fill="#A5E8DE" font-family="Consolas, 'Courier New', monospace" font-size="25">connection.json</text>
-  <text x="248" y="487" fill="#B9DFF8" font-family="Segoe UI, Arial, sans-serif" font-size="19">Engine-blind handoff to model deployment and hierarchy seeding</text>
+  <text x="248" y="487" fill="#B9DFF8" font-family="Segoe UI, Arial, sans-serif" font-size="19">Stable handoff to model deployment and hierarchy seeding</text>
 </svg>

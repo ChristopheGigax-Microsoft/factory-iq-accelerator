@@ -50,7 +50,7 @@ AI agents built with **Azure.AI.Projects** and **Microsoft.Agents.AI.Foundry** (
 
 - .NET 10 SDK
 - Azure CLI (`az login` to the correct tenant)
-- Deployed infrastructure (see `infra/terraform/` or `infra/bicep/`)
+- Deployed infrastructure (see `infra/terraform/`)
 - Published Fabric Data Agent (required for Fabric IQ MCP tools to resolve)
 
 ### Environment Variables

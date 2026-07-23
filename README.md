@@ -7,7 +7,7 @@
 <br/>
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
-[![IaC: Terraform + Bicep](https://img.shields.io/badge/IaC-Terraform%20%7C%20Bicep-623CE4?style=flat-square&logo=terraform)](infra/)
+[![IaC: Terraform](https://img.shields.io/badge/IaC-Terraform-623CE4?style=flat-square&logo=terraform)](infra/terraform/)
 [![Platform: Microsoft Fabric](https://img.shields.io/badge/Platform-Microsoft%20Fabric-00BCF2?style=flat-square)](https://learn.microsoft.com/fabric)
 [![Agents: Azure AI Foundry](https://img.shields.io/badge/Agents-Azure%20AI%20Foundry-0078D4?style=flat-square&logo=microsoft-azure)](https://ai.azure.com)
 [![SDK: .NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet)](src/foundry-agents/)
@@ -15,7 +15,7 @@
 
 <br/>
 
-[**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Agents**](#-manufacturing-agents) · [**IaC Engines**](#-iac-engines) · [**Docs**](#-documentation)
+[**Quick Start**](#-quick-start) · [**Architecture**](#-architecture) · [**Agents**](#-manufacturing-agents) · [**IaC**](#-iac-deployment-terraform) · [**Docs**](#-documentation)
 
 </div>
 
@@ -49,7 +49,7 @@ In a single deploy, Factory IQ Accelerator provisions:
 | 🔍 **Search & Knowledge** | Azure AI Search, knowledge base, vector index over maintenance/quality docs |
 | 🤖 **AI Agents** | 5 manufacturing agents on Azure AI Foundry (C#/.NET 10) |
 | 🔗 **Live Connectors** | Fabric Data Agent (MCP, optionally ontology-enriched), Work IQ (M365 tasks), Foundry IQ (RAG) |
-| 📄 **Handoff Contract** | `connection.json` — engine-agnostic output contract for downstream tools |
+| 📄 **Handoff Contract** | `connection.json` — deployment output contract for downstream tools |
 
 ---
 
@@ -103,17 +103,7 @@ Agents are registered as **versioned Foundry Agents** and stay persistent in the
 
 > Ontology integration pattern: add Ontology as a source inside the Fabric Data Agent, then keep Foundry connected to the Data Agent MCP endpoint.
 
-## IaC Engines
-
-Pick one — both produce the same `connection.json` handoff contract.
-
-<table>
-<tr>
-<th>Terraform</th>
-<th>Bicep</th>
-</tr>
-<tr>
-<td>
+## IaC Deployment (Terraform)
 
 ```bash
 terraform -chdir=infra/terraform init
@@ -122,26 +112,6 @@ terraform -chdir=infra/terraform apply \
 terraform -chdir=infra/terraform output \
   -json connection_contract > connection.json
 ```
-
-</td>
-<td>
-
-```bash
-az deployment group create \
-  --resource-group "$RESOURCE_GROUP" \
-  --template-file infra/bicep/main.bicep \
-  --parameters infra/bicep/environments/dev.bicepparam
-
-az deployment group show \
-  --resource-group "$RESOURCE_GROUP" \
-  --name main \
-  --query properties.outputs.connectionContract.value \
-  > connection.json
-```
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -153,7 +123,7 @@ az deployment group show \
 - Owner access on target subscription
 - .NET 10 SDK (for Foundry agents)
 - Python 3.11+ (for ISA-95 model scripts)
-- Terraform ≥ 1.6 **or** Azure CLI with Bicep
+- Terraform ≥ 1.6
 
 ### 2. Set context
 
@@ -207,8 +177,7 @@ dotnet run --project src/foundry-agents/agents/FactoryIQ.Agents.Maintenance \
 ```
 factory-iq-accelerator/
 ├── infra/
-│   ├── terraform/          # Terraform: Fabric + Foundry + AI Search + Storage
-│   └── bicep/              # Bicep: same stack, ARM-native
+│   └── terraform/          # Terraform: Fabric + Foundry + AI Search + Storage
 ├── src/
 │   ├── foundry-agents/     # .NET 10 — 5 AI manufacturing agents
 │   │   ├── shared/         # FoundryAgentBase, AgentRunner, FoundryConfig
@@ -225,7 +194,7 @@ factory-iq-accelerator/
 
 ## Connection Contract
 
-Every IaC engine emits the same artifact — `connection.json` — used by all downstream tools:
+Terraform emits `connection.json`, which is used by downstream tools:
 
 ```json
 {
@@ -246,7 +215,7 @@ Every IaC engine emits the same artifact — `connection.json` — used by all d
 }
 ```
 
-> The contract is engine-blind: swap Terraform for Bicep (or the other way around) without touching any downstream code.
+> The contract is stable and consumed by downstream tooling (`shared/scripts/deploy-model.py`, agent setup), independently of deployment internals.
 
 ---
 
@@ -259,7 +228,7 @@ No forking needed. Use these files as your customization surface:
 | `shared/isa95-model/config/plant-hierarchy.yaml` | Enterprise → Site → Area → WorkCenter → WorkUnit definitions |
 | `shared/isa95-model/extensions/*.kql` | Customer-specific schema, functions, policies |
 | `shared/eventstream/definition/eventstream.json` | Telemetry ingestion topology |
-| `infra/<engine>/environments/*` | Plant code, region, SKU, optional feature flags |
+| `infra/terraform/environments/*` | Plant code, region, SKU, optional feature flags |
 | `src/foundry-agents/knowledge/` | Maintenance procedures, quality standards, lean templates |
 
 **Rule:** Keep `shared/isa95-model/core/` unchanged. All customer-specific schema goes in `extensions/`.
@@ -274,7 +243,6 @@ No forking needed. Use these files as your customization surface:
 | [Foundry Agents](docs/foundry-agents.md) | Agent integration guide, connectors, RBAC |
 | [Connection Contract](contracts/connection-contract.md) | Schema reference for `connection.json` |
 | [Terraform README](infra/terraform/README.md) | Terraform-specific deployment guide |
-| [Bicep README](infra/bicep/README.md) | Bicep-specific deployment guide |
 | [ISA-95 Model](shared/isa95-model/README.md) | Model schema, hierarchy, extension guide |
 | [Fabric Ontology](docs/fabric-ontology.md) | Ontology design + Data Agent integration pattern |
 | [Foundry Agents (src)](src/foundry-agents/README.md) | Agent developer guide, env vars, local run |
@@ -291,8 +259,7 @@ No forking needed. Use these files as your customization surface:
 | [Azure AI Search](https://learn.microsoft.com/azure/search/) | Foundry IQ vector / hybrid search |
 | [.NET 10 / C#](https://dotnet.microsoft.com) | Agent runtime |
 | [Microsoft Agent Framework](https://github.com/microsoft/agents) | Agent orchestration SDK |
-| [Terraform](https://www.terraform.io) + [Fabric Provider](https://registry.terraform.io/providers/microsoft/fabric) | IaC engine A |
-| [Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/) | IaC engine B |
+| [Terraform](https://www.terraform.io) + [Fabric Provider](https://registry.terraform.io/providers/microsoft/fabric) | IaC engine |
 | [ISA-95](https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa95) | Manufacturing ontology standard |
 
 ---

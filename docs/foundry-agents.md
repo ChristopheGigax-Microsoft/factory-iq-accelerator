@@ -141,7 +141,7 @@ Use:
 - `docs/fabric-ontology.md` for implementation steps.
 - `shared/ontology/factory-iq-ontology-blueprint.yaml` for the proposed ISA-95 ontology model.
 
-IaC also creates an optional **Work IQ project connection** (`work-iq-connection`) when `work_iq_connection_target` (Terraform) or `workIqConnectionTarget` (Bicep) is set:
+IaC also creates an optional **Work IQ project connection** (`work-iq-connection`) when `work_iq_connection_target` (Terraform) is set:
 
 - `category: RemoteTool`
 - `authType: UserEntraToken`
