@@ -23,17 +23,11 @@ output "resource_group" {
   value       = data.azurerm_resource_group.demo.name
 }
 
-output "appinsights_connection_string" {
-  description = "Application Insights connection string"
-  value       = azurerm_application_insights.this.connection_string
-  sensitive   = true
-}
-
 # ── Operational commands ──────────────────────────────────────────────────────
 
 output "cmd_deploy_code" {
   description = "Run this from the repo root to publish the generator code to Azure"
-  value       = "cd samples/isa-95-data-generator/src && func azure functionapp publish ${azurerm_windows_function_app.this.name} --dotnet-version 10"
+  value       = "cd samples/isa-95-data-generator/src && func azure functionapp publish ${azurerm_windows_function_app.this.name} --dotnet-isolated"
 }
 
 output "cmd_change_scenario" {
@@ -45,3 +39,4 @@ output "cmd_get_device_cs" {
   description = "Run this to retrieve the device connection string for local testing"
   value       = "az iot hub device-identity connection-string show --hub-name ${azurerm_iothub.this.name} --device-id ${var.device_id} --query connectionString -o tsv"
 }
+

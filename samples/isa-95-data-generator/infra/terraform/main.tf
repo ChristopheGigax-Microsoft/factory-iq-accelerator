@@ -66,31 +66,11 @@ resource "azurerm_storage_account" "functions" {
   tags                     = local.tags
 }
 
-# ── Log Analytics Workspace ───────────────────────────────────────────────────
-
-resource "azurerm_log_analytics_workspace" "this" {
-  name                = "${local.base}-law"
-  resource_group_name = data.azurerm_resource_group.demo.name
-  location            = data.azurerm_resource_group.demo.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-  tags                = local.tags
-}
-
-# ── Application Insights ──────────────────────────────────────────────────────
-
-resource "azurerm_application_insights" "this" {
-  name                = "${local.base}-appinsights"
-  resource_group_name = data.azurerm_resource_group.demo.name
-  location            = data.azurerm_resource_group.demo.location
-  workspace_id        = azurerm_log_analytics_workspace.this.id
-  application_type    = "web"
-  tags                = local.tags
-}
-
-# ── App Service Plan (Windows Consumption) ────────────────────────────────────
-# Windows Y1 has significantly better cold-start and runtime support for
-# .NET 10 isolated worker compared to Linux Y1.
+# ── App Service Plan (Windows Consumption Y1) ─────────────────────────────────
+# Y1 = Consumption pricing — you pay only per execution, zero fixed cost.
+# azurerm requires an explicit plan resource even for Consumption; this is
+# just an Terraform artefact, not an extra billed resource.
+# Windows Y1 is used instead of Linux Y1: better .NET 10 isolated worker support.
 
 resource "azurerm_service_plan" "this" {
   name                = "${local.base}-plan"
@@ -113,10 +93,9 @@ resource "azurerm_windows_function_app" "this" {
   tags                       = local.tags
 
   app_settings = {
-    FUNCTIONS_WORKER_RUNTIME              = "dotnet-isolated"
-    APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
-    DEMO_SCENARIO                         = var.demo_scenario
-    WEBSITE_RUN_FROM_PACKAGE              = "1"
+    FUNCTIONS_WORKER_RUNTIME = "dotnet-isolated"
+    DEMO_SCENARIO            = var.demo_scenario
+    WEBSITE_RUN_FROM_PACKAGE = "1"
 
     # Set to empty initially; post_deploy step injects the real device connection string.
     # Ignore drift in subsequent applies — the value is managed externally by that step.
