@@ -10,12 +10,12 @@ output "iothub_hostname" {
 
 output "function_app_name" {
   description = "Function App name — pass to 'func azure functionapp publish' to deploy the generator code"
-  value       = azurerm_linux_function_app.this.name
+  value       = azurerm_windows_function_app.this.name
 }
 
 output "function_app_url" {
   description = "Function App URL"
-  value       = "https://${azurerm_linux_function_app.this.default_hostname}"
+  value       = "https://${azurerm_windows_function_app.this.default_hostname}"
 }
 
 output "resource_group" {
@@ -33,12 +33,12 @@ output "appinsights_connection_string" {
 
 output "cmd_deploy_code" {
   description = "Run this from the repo root to publish the generator code to Azure"
-  value       = "cd samples/isa-95-data-generator/src && func azure functionapp publish ${azurerm_linux_function_app.this.name} --dotnet-version 10"
+  value       = "cd samples/isa-95-data-generator/src && func azure functionapp publish ${azurerm_windows_function_app.this.name} --dotnet-version 10"
 }
 
 output "cmd_change_scenario" {
   description = "Run this to switch the active demo scenario without redeploying"
-  value       = "az functionapp config appsettings set --name ${azurerm_linux_function_app.this.name} --resource-group ${data.azurerm_resource_group.demo.name} --settings DEMO_SCENARIO=<Normal|TemperatureDrift|QualityExcursion|MachineFault|ShiftChange>"
+  value       = "az functionapp config appsettings set --name ${azurerm_windows_function_app.this.name} --resource-group ${data.azurerm_resource_group.demo.name} --settings DEMO_SCENARIO=<Normal|TemperatureDrift|QualityExcursion|MachineFault|ShiftChange>"
 }
 
 output "cmd_get_device_cs" {

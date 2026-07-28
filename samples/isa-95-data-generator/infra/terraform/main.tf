@@ -88,20 +88,22 @@ resource "azurerm_application_insights" "this" {
   tags                = local.tags
 }
 
-# ── App Service Plan (Linux Consumption) ─────────────────────────────────────
+# ── App Service Plan (Windows Consumption) ────────────────────────────────────
+# Windows Y1 has significantly better cold-start and runtime support for
+# .NET 10 isolated worker compared to Linux Y1.
 
 resource "azurerm_service_plan" "this" {
   name                = "${local.base}-plan"
   resource_group_name = data.azurerm_resource_group.demo.name
   location            = data.azurerm_resource_group.demo.location
-  os_type             = "Linux"
+  os_type             = "Windows"
   sku_name            = "Y1"
   tags                = local.tags
 }
 
 # ── Azure Function App (.NET 10 isolated worker) ──────────────────────────────
 
-resource "azurerm_linux_function_app" "this" {
+resource "azurerm_windows_function_app" "this" {
   name                       = "${local.base}-func-${random_id.suffix.hex}"
   resource_group_name        = data.azurerm_resource_group.demo.name
   location                   = data.azurerm_resource_group.demo.location
@@ -123,7 +125,7 @@ resource "azurerm_linux_function_app" "this" {
 
   site_config {
     application_stack {
-      dotnet_version              = "10"
+      dotnet_version              = "v10.0"
       use_dotnet_isolated_runtime = true
     }
   }
@@ -141,8 +143,8 @@ resource "azurerm_linux_function_app" "this" {
 # Function App. Runs whenever the IoT Hub or Function App is replaced.
 
 resource "terraform_data" "post_deploy" {
-  depends_on       = [azurerm_linux_function_app.this, azurerm_iothub.this]
-  triggers_replace = [azurerm_iothub.this.id, azurerm_linux_function_app.this.id]
+  depends_on       = [azurerm_windows_function_app.this, azurerm_iothub.this]
+  triggers_replace = [azurerm_iothub.this.id, azurerm_windows_function_app.this.id]
 
   provisioner "local-exec" {
     interpreter = ["PowerShell", "-Command"]
@@ -167,7 +169,7 @@ resource "terraform_data" "post_deploy" {
 
       Write-Host ">>> Injecting connection string into Function App..."
       az functionapp config appsettings set `
-        --name ${azurerm_linux_function_app.this.name} `
+        --name ${azurerm_windows_function_app.this.name} `
         --resource-group ${data.azurerm_resource_group.demo.name} `
         --settings "IoTHubDeviceConnectionString=$cs" `
         --output none
