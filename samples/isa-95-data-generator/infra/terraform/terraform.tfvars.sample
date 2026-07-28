@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and fill in real values before running terraform apply.
+# Never commit terraform.tfvars (it is gitignored).
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+resource_group  = "rg-isa95-demo"
+region          = "francecentral"
+
+device_id       = "isa95-generator"
+demo_scenario   = "Normal"   # Normal | TemperatureDrift | QualityExcursion | MachineFault | ShiftChange
