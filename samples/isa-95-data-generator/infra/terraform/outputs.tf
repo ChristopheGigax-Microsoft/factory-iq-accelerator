@@ -19,8 +19,8 @@ output "function_app_url" {
 }
 
 output "resource_group" {
-  description = "Resource group containing all demo resources"
-  value       = azurerm_resource_group.demo.name
+  description = "Resource group containing all demo resources (shared with main accelerator)"
+  value       = data.azurerm_resource_group.demo.name
 }
 
 output "appinsights_connection_string" {
@@ -38,7 +38,7 @@ output "cmd_deploy_code" {
 
 output "cmd_change_scenario" {
   description = "Run this to switch the active demo scenario without redeploying"
-  value       = "az functionapp config appsettings set --name ${azurerm_linux_function_app.this.name} --resource-group ${azurerm_resource_group.demo.name} --settings DEMO_SCENARIO=<Normal|TemperatureDrift|QualityExcursion|MachineFault|ShiftChange>"
+  value       = "az functionapp config appsettings set --name ${azurerm_linux_function_app.this.name} --resource-group ${data.azurerm_resource_group.demo.name} --settings DEMO_SCENARIO=<Normal|TemperatureDrift|QualityExcursion|MachineFault|ShiftChange>"
 }
 
 output "cmd_get_device_cs" {

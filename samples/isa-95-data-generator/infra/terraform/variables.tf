@@ -10,14 +10,8 @@ variable "tenant_id" {
 
 variable "resource_group" {
   type        = string
-  description = "Resource group name for the demo infrastructure"
-  default     = "rg-isa95-demo"
-}
-
-variable "region" {
-  type        = string
-  description = "Azure region. Should match the main accelerator region to minimise latency."
-  default     = "francecentral"
+  description = "Name of the EXISTING resource group to deploy into (same as the main accelerator RG)"
+  default     = "rg-fiq-plant1-dev"
 }
 
 variable "device_id" {

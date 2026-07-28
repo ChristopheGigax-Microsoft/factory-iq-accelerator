@@ -4,8 +4,8 @@
 subscription_id = "00000000-0000-0000-0000-000000000000"
 tenant_id       = "00000000-0000-0000-0000-000000000000"
 
-resource_group  = "rg-isa95-demo"
-region          = "francecentral"
+# Use the same RG as the main accelerator — no need for a dedicated one
+resource_group  = "rg-fiq-plant1-dev"
 
 device_id       = "isa95-generator"
 demo_scenario   = "Normal"   # Normal | TemperatureDrift | QualityExcursion | MachineFault | ShiftChange
