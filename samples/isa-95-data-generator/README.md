@@ -41,6 +41,19 @@ Enterprise: ent-fiq-demo
 
 ## Message Format
 
+Official reference used for this demo message design (ISA-95/B2MML):  
+https://github.com/MESAInternational/B2MML-BatchML
+
+Concrete schema files used for the mapping below:
+
+| Demo concept | B2MML schema |
+|---|---|
+| Equipment state / equipment context | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-Equipment.xsd |
+| Work request / schedule | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-OperationsSchedule.xsd |
+| Work response / execution feedback | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-OperationsPerformance.xsd |
+| Material actual / consumption-production | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-Material.xsd |
+| Quality test / quality event | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-OperationsTest.xsd |
+
 All messages use a single `TelemetryLanding` envelope. The KQL update policies dispatch to Silver tables based on which `Payload` fields are present:
 
 | Signal | `Payload` discriminant | Silver table |
