@@ -37,6 +37,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
     public abstract string Name { get; }
 
+    public bool IsLocal => false;
+
     protected abstract string Description { get; }
 
     protected abstract string Instructions { get; }

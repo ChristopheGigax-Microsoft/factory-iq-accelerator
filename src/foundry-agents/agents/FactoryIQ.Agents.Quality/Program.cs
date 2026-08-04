@@ -1,17 +1,31 @@
 using FactoryIQ.Agents.Quality;
 using FactoryIQ.Agents.Shared.Agents;
+using FactoryIQ.Agents.Shared.Local;
+using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 var config = ServiceRegistration.LoadConfigFromEnvironment();
 var services = new ServiceCollection();
-services.AddFoundryAgentServices(config);
-services.AddSingleton<QualityAgent>();
+if (config.Runtime == AgentRuntime.Local)
+{
+    services.AddLocalAgentServices(config);
+}
+else
+{
+    services.AddFoundryAgentServices(config);
+    services.AddSingleton<QualityAgent>();
+}
 
 using var provider = services.BuildServiceProvider();
 var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("Program");
-var agent = provider.GetRequiredService<QualityAgent>();
+IFactoryAgent agent = config.Runtime == AgentRuntime.Local
+    ? new LocalFactoryAgent(
+        FactoryAgentProfiles.Quality,
+        provider.GetRequiredService<LocalModelRuntime>(),
+        provider.GetRequiredService<ILogger<LocalFactoryAgent>>())
+    : provider.GetRequiredService<QualityAgent>();
 
 try
 {

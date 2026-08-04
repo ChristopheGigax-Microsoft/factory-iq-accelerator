@@ -59,6 +59,10 @@ public static class AgentConsoleHost
             {
                 await agent.DeleteAsync(ct);
             }
+            else if (agent.IsLocal)
+            {
+                logger.LogInformation("Local Factory IQ agent {AgentName} session finished.", agent.Name);
+            }
             else
             {
                 logger.LogInformation("Leaving Foundry agent {AgentName} registered in Foundry Agent Service.", agent.Name);

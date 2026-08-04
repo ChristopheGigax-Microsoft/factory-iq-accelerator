@@ -195,6 +195,13 @@ factory-iq-accelerator/
 └── docs/                   # Architecture, Foundry agent integration guide
 ```
 
+### Foundry Local
+
+The five manufacturing agents can also run locally with Foundry Local and
+client-provided MQTT, OPC UA, or file data adapters. See
+[`docs/foundry-local.md`](docs/foundry-local.md) for local setup, model caching,
+tool extension points, and factory deployment guidance.
+
 ---
 
 ## Connection Contract

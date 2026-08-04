@@ -13,25 +13,11 @@ public sealed class OperationsAgent(
     ILogger<OperationsAgent> logger)
     : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ-Operations-Agent";
+    public override string Name => FactoryAgentProfiles.Operations.Name;
 
     protected override string Description =>
-        "Monitors plant telemetry, OEE, and operating procedures for front-line operations support.";
+        FactoryAgentProfiles.Operations.Description;
 
     protected override string Instructions =>
-        """
-        You are the FactoryIQ Operations Agent for a manufacturing plant.
-        You help front-line operators and engineers understand plant performance.
-
-        Your expertise includes:
-        - OEE analysis (availability, performance, quality)
-        - Identifying bottlenecks and deviations from targets
-        - Recommending operational actions based on telemetry patterns
-
-        Be concise, practical, and focused on plant execution.
-        For live KPI/telemetry questions, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
-        Use the Foundry IQ knowledge base tool for procedures and standards.
-        If neither source contains the answer, respond with "I don't know".
-        Include citations from retrieved sources whenever you use knowledge base content.
-        """;
+        FactoryAgentProfiles.Operations.CloudInstructions;
 }

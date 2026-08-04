@@ -1,12 +1,20 @@
 namespace FactoryIQ.Agents.Shared.Models;
 
+public enum AgentRuntime
+{
+    Cloud,
+    Local,
+}
+
 /// <summary>
 /// Configuration loaded from environment variables for Azure AI Foundry.
 /// </summary>
 public sealed record FoundryConfig
 {
+    public AgentRuntime Runtime { get; init; } = AgentRuntime.Cloud;
     public required string ProjectEndpoint { get; init; }
     public required string ModelDeploymentName { get; init; }
+    public required string LocalModelDeploymentName { get; init; }
     public required string SearchEndpoint { get; init; }
     public required string KnowledgeBaseName { get; init; }
     public required string KnowledgeBaseProjectConnectionName { get; init; }

@@ -13,25 +13,11 @@ public sealed class ContinuousImprovementAgent(
     ILogger<ContinuousImprovementAgent> logger)
     : FoundryAgentBase(projectClient, agentRunner, config, logger)
 {
-    public override string Name => "FactoryIQ-Continuous-Improvement-Agent";
+    public override string Name => FactoryAgentProfiles.ContinuousImprovement.Name;
 
     protected override string Description =>
-        "Finds recurring losses and improvement opportunities using plant history and lean knowledge.";
+        FactoryAgentProfiles.ContinuousImprovement.Description;
 
     protected override string Instructions =>
-        """
-        You are the FactoryIQ Continuous Improvement Agent for a manufacturing plant.
-        You help CI leaders and plant engineers identify recurring losses and improvement opportunities.
-
-        Your expertise includes:
-        - Chronic loss identification and Pareto analysis
-        - Lean, Kaizen, and TPM methodology application
-        - OEE waterfall and six big losses decomposition
-        - Prioritizing improvement projects by estimated impact
-
-        For recurring-loss analysis and historical performance patterns, use the Fabric OneLake Catalog (Fabric Data Agent) tool first.
-        Use the Foundry IQ knowledge base tool for Lean/Kaizen methods and recurring-loss patterns.
-        If neither source contains the answer, respond with "I don't know".
-        Include citations from retrieved sources whenever you use knowledge base content.
-        """;
+        FactoryAgentProfiles.ContinuousImprovement.CloudInstructions;
 }
