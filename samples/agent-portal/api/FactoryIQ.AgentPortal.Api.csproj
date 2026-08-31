@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>FactoryIQ.AgentPortal.Api</RootNamespace>
+    <NoWarn>$(NoWarn);CA2252</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\foundry-agents\shared\FactoryIQ.Agents.Shared\FactoryIQ.Agents.Shared.csproj" />
+    <ProjectReference Include="..\..\..\src\foundry-agents\agents\FactoryIQ.Agents.Operations\FactoryIQ.Agents.Operations.csproj" />
+    <ProjectReference Include="..\..\..\src\foundry-agents\agents\FactoryIQ.Agents.Maintenance\FactoryIQ.Agents.Maintenance.csproj" />
+    <ProjectReference Include="..\..\..\src\foundry-agents\agents\FactoryIQ.Agents.Quality\FactoryIQ.Agents.Quality.csproj" />
+    <ProjectReference Include="..\..\..\src\foundry-agents\agents\FactoryIQ.Agents.PlantManager\FactoryIQ.Agents.PlantManager.csproj" />
+    <ProjectReference Include="..\..\..\src\foundry-agents\agents\FactoryIQ.Agents.ContinuousImprovement\FactoryIQ.Agents.ContinuousImprovement.csproj" />
+  </ItemGroup>
+
+</Project>

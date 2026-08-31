@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Factory IQ — Agent Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="brand">🏭 Factory IQ <span>Agent Portal</span></div>
+      <div class="runtime-badge" id="runtime-badge">runtime: …</div>
+    </header>
+
+    <div class="body">
+      <aside class="sidebar" id="agent-list">
+        <!-- Agent cards injected by app.js -->
+      </aside>
+
+      <main class="chat-panel">
+        <div class="chat-header">
+          <h2 id="active-agent-name">Select an agent</h2>
+          <p id="active-agent-description"></p>
+        </div>
+
+        <div class="chat-thread" id="chat-thread">
+          <div class="empty-state" id="empty-state">
+            Pick a manufacturing agent on the left, then ask a question — e.g.
+            <em>"What is the current OEE for line 1?"</em> or
+            <em>"Show me the top open alarms."</em>
+          </div>
+        </div>
+
+        <form class="chat-input" id="chat-form">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ask the selected agent…"
+            autocomplete="off"
+            disabled
+          />
+          <button type="submit" id="chat-send" disabled>Send</button>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

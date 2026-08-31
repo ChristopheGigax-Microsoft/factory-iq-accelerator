@@ -1,6 +1,7 @@
 using FactoryIQ.Agents.Operations;
 using FactoryIQ.Agents.Shared.Agents;
 using FactoryIQ.Agents.Shared.Local;
+using FactoryIQ.Agents.Shared.Local.Tools.OpcUa;
 using FactoryIQ.Agents.Shared.Models;
 using FactoryIQ.Agents.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,8 @@ IFactoryAgent agent = config.Runtime == AgentRuntime.Local
     ? new LocalFactoryAgent(
         FactoryAgentProfiles.Operations,
         provider.GetRequiredService<LocalModelRuntime>(),
-        provider.GetRequiredService<ILogger<LocalFactoryAgent>>())
+        provider.GetRequiredService<ILogger<LocalFactoryAgent>>(),
+        provider.GetRequiredService<OpcUaMachineDataTool>())
     : provider.GetRequiredService<OperationsAgent>();
 
 try
