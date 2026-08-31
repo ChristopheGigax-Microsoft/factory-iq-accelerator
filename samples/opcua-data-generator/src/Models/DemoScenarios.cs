@@ -2,7 +2,7 @@ namespace OpcUaDataGenerator.Models;
 
 public enum DemoScenario
 {
-    /// <summary>Healthy plant baseline (~95% OEE). Default.</summary>
+    /// <summary>Healthy production-line baseline (~95% OEE). Default.</summary>
     Normal,
 
     /// <summary>
@@ -12,13 +12,13 @@ public enum DemoScenario
     TemperatureDrift,
 
     /// <summary>
-    /// Quality excursion on PROD-CRANK-7B batches: 10–25% scrap rate.
+    /// Quality excursion on PROD-ENGINE-7B batches: 10–25% scrap rate.
     /// Triggers Quality agent root-cause analysis.
     /// </summary>
     QualityExcursion,
 
     /// <summary>
-    /// Unplanned fault on Centre d'Usinage #1. Forced after 5 ticks.
+    /// Unplanned fault on CNC Lathe #2. Forced after 5 ticks.
     /// Triggers Operations agent deviation detection and Plant Manager escalation.
     /// </summary>
     MachineFault,
@@ -34,10 +34,10 @@ public static class ScenarioMetadata
 {
     public static string Description(DemoScenario scenario) => scenario switch
     {
-        DemoScenario.Normal           => "Normal operation — healthy plant baseline (~95% OEE)",
+        DemoScenario.Normal           => "Normal operation — healthy production-line baseline (~95% OEE)",
         DemoScenario.TemperatureDrift => "Spindle temperature drift on Tour CNC #1 — Maintenance agent detects deviation",
-        DemoScenario.QualityExcursion => "Quality excursion on Vilebrequin 7B batches (>10% scrap) — Quality agent investigates",
-        DemoScenario.MachineFault     => "Unplanned fault on Centre d'Usinage #1 — Operations + Plant Manager escalation",
+        DemoScenario.QualityExcursion => "Quality excursion on Motor Assembly 7B batches (>10% scrap) — Quality agent investigates",
+        DemoScenario.MachineFault     => "Unplanned fault on CNC Lathe #2 — Operations + Plant Manager escalation",
         DemoScenario.ShiftChange      => "Shift change — all equipment transitions Idle → Active",
         _                             => "Unknown scenario"
     };
@@ -46,8 +46,8 @@ public static class ScenarioMetadata
     public static string TargetWorkUnitId(DemoScenario scenario) => scenario switch
     {
         DemoScenario.TemperatureDrift => "wu-lyon-prod-tour1",
-        DemoScenario.QualityExcursion => "wu-lyon-crank-centre1",
-        DemoScenario.MachineFault     => "wu-lyon-crank-centre1",
+        DemoScenario.QualityExcursion => "wu-lyon-qual-cmm1",
+        DemoScenario.MachineFault     => "wu-lyon-prod-tour2",
         _                             => string.Empty
     };
 }

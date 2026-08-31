@@ -39,7 +39,7 @@ public class TelemetryGenerator : ITelemetryGenerator
         var readings = new List<TelemetryReading>();
         var now = DateTime.UtcNow;
 
-        foreach (var site in DemoPlant.Instance.Sites)
+        foreach (var site in DemoProductionLine.Instance.Sites)
         foreach (var area in site.Areas)
         foreach (var wc in area.WorkCenters)
         foreach (var wu in wc.WorkUnits)

@@ -5,7 +5,7 @@ using Opc.Ua.Server;
 namespace OpcUaDataGenerator.Server;
 
 /// <summary>
-/// Standalone OPC UA server exposing the ISA-95 demo plant as an address space.
+/// Standalone OPC UA server exposing one demo production line as an address space.
 /// Wraps the OPC Foundation .NET Standard stack (StandardServer) with a single
 /// custom node manager (<see cref="FactoryNodeManager"/>).
 /// </summary>

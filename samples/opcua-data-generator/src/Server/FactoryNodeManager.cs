@@ -6,15 +6,15 @@ using OpcUaDataGenerator.Services;
 namespace OpcUaDataGenerator.Server;
 
 /// <summary>
-/// Builds the OPC UA address space from the ISA-95 plant topology and applies
+/// Builds the OPC UA address space from one ISA-95 production-line topology and applies
 /// simulated telemetry/state/alarm updates to the corresponding nodes.
 ///
 /// Address space layout:
 ///   Objects
 ///     └─ FactoryIQ
-///          └─ {SiteId} (e.g. site-lyon)
+///          └─ {SiteId} (e.g. site-lyon-edge)
 ///               └─ {AreaId}
-///                    └─ {WorkCenterId}
+///                    └─ {ProductionLineId}
 ///                         └─ {WorkUnitId}
 ///                              ├─ State                (UInt32 — EquipmentState)
 ///                              ├─ ActiveAlarmCode       (String, empty when no alarm)
@@ -42,7 +42,7 @@ public sealed class FactoryNodeManager : CustomNodeManager2
         var root = CreateFolder(null, "FactoryIQ", "FactoryIQ");
         AddRootNotifier(root);
 
-        foreach (var site in DemoPlant.Instance.Sites)
+        foreach (var site in DemoProductionLine.Instance.Sites)
         {
             var siteFolder = CreateFolder(root, site.SiteId, site.Name);
 

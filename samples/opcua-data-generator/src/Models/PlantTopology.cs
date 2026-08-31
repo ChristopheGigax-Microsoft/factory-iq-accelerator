@@ -60,75 +60,46 @@ public sealed record ProductDefinition(
     double StandardCycleTimeSec
 );
 
-// ── Demo Plant: Usine Lyon ────────────────────────────────────────────────────
+// ── Demo production line: Lyon Motor Line 1 ───────────────────────────────────
 
 /// <summary>
 /// Singleton ISA-95 topology used by the OPC UA generator.
-/// Represents Usine Lyon with three areas: Production Moteurs, Contrôle Qualité, Usinage Vilebrequins.
+/// Represents one production line controller, not a whole plant-wide OPC UA namespace.
 /// Kept as a self-contained copy — intentionally not shared with the ISA-95/IoT Hub generator.
 /// </summary>
-public static class DemoPlant
+public static class DemoProductionLine
 {
     public static Enterprise Instance { get; } = Build();
 
     static Enterprise Build() => new(
         "ent-fiq-demo",
         "Factory IQ Demo",
-        [BuildLyon()]
+        [BuildLineController()]
     );
 
-    static Site BuildLyon() => new(
-        "site-lyon",
-        "Usine Lyon",
+    static Site BuildLineController() => new(
+        "site-lyon-edge",
+        "Lyon Edge Gateway",
         "Lyon, France",
-        [BuildProductionArea(), BuildQualityArea(), BuildCrankshaftArea()]
+        [BuildMotorLineArea()]
     );
 
-    // ── Area 1: Production Moteurs ────────────────────────────────────────────
+    // ── One OPC UA server scoped to one production line ───────────────────────
 
-    static Area BuildProductionArea() => new(
-        "area-lyon-production", "Production Moteurs", "site-lyon",
+    static Area BuildMotorLineArea() => new(
+        "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge",
         [
-            new WorkCenter("wc-lyon-prod-01", "Ligne Production Moteurs", "area-lyon-production",
+            new WorkCenter("line-lyon-motor-01", "Lyon Motor Line 1 Controller", "area-lyon-motor-line",
             [
-                new WorkUnit("wu-lyon-prod-tour1", "Tour CNC #1",    "CNC",     "wc-lyon-prod-01", CncSignals()),
-                new WorkUnit("wu-lyon-prod-tour2", "Tour CNC #2",    "CNC",     "wc-lyon-prod-01", CncSignals()),
-                new WorkUnit("wu-lyon-prod-rect1", "Rectifieuse #1", "Grinder", "wc-lyon-prod-01", GrinderSignals())
+                new WorkUnit("wu-lyon-prod-tour1",  "CNC Lathe #1",        "CNC",       "line-lyon-motor-01", CncSignals()),
+                new WorkUnit("wu-lyon-prod-tour2",  "CNC Lathe #2",        "CNC",       "line-lyon-motor-01", CncSignals()),
+                new WorkUnit("wu-lyon-prod-rect1",  "Crankshaft Grinder",  "Grinder",   "line-lyon-motor-01", GrinderSignals()),
+                new WorkUnit("wu-lyon-qual-cmm1",   "Inline CMM Station",  "CMM",       "line-lyon-motor-01", CmmSignals()),
+                new WorkUnit("wu-lyon-qual-bench1", "End-of-Line Test Rig","TestBench", "line-lyon-motor-01", TestBenchSignals())
             ],
             [
-                new ProductDefinition("PROD-CRANK-7B", "Vilebrequin 7B", "MAT-STEEL-42CrMo4", "EA", 480),
-                new ProductDefinition("PROD-CRANK-5A", "Vilebrequin 5A", "MAT-STEEL-42CrMo4", "EA", 360)
-            ])
-        ]
-    );
-
-    // ── Area 2: Contrôle Qualité ─────────────────────────────────────────────
-
-    static Area BuildQualityArea() => new(
-        "area-lyon-quality", "Contrôle Qualité", "site-lyon",
-        [
-            new WorkCenter("wc-lyon-qual-01", "Contrôle Qualité", "area-lyon-quality",
-            [
-                new WorkUnit("wu-lyon-qual-cmm1",   "Machine CMM #1",       "CMM",      "wc-lyon-qual-01", CmmSignals()),
-                new WorkUnit("wu-lyon-qual-bench1",  "Banc de Test Moteur #1", "TestBench", "wc-lyon-qual-01", TestBenchSignals())
-            ],
-            []) // Quality area doesn't manage production orders
-        ]
-    );
-
-    // ── Area 3: Usinage Vilebrequins ─────────────────────────────────────────
-
-    static Area BuildCrankshaftArea() => new(
-        "area-lyon-crankshaft", "Usinage Vilebrequins", "site-lyon",
-        [
-            new WorkCenter("wc-lyon-crank-01", "Usinage Vilebrequins", "area-lyon-crankshaft",
-            [
-                new WorkUnit("wu-lyon-crank-centre1", "Centre d'Usinage #1", "CNC", "wc-lyon-crank-01", CncSignals()),
-                new WorkUnit("wu-lyon-crank-tour1",   "Tour Vertical #1",   "CNC", "wc-lyon-crank-01", CncSignals())
-            ],
-            [
-                new ProductDefinition("PROD-CRANK-7B",  "Vilebrequin 7B", "MAT-STEEL-42CrMo4", "EA", 600),
-                new ProductDefinition("PROD-PISTON-X2", "Piston X2",      "MAT-ALUM-2024",     "EA", 240)
+                new ProductDefinition("PROD-ENGINE-7B", "Motor Assembly 7B", "MAT-STEEL-42CrMo4", "EA", 480),
+                new ProductDefinition("PROD-ENGINE-5A", "Motor Assembly 5A", "MAT-STEEL-42CrMo4", "EA", 360)
             ])
         ]
     );

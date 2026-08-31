@@ -94,10 +94,9 @@ small inline `<script>` in `index.html`).
 2. Stop the API, restart with `AI_RUNTIME=local` (optionally disconnect from
    the network first to make the point emphatically), reload the portal —
    badge flips to "Local", same UI, same agents, same questions work.
-3. Ask the **Maintenance** or **Operations** agent a question that would use
-   live telemetry, and pair it with the `samples/opcua-data-generator`
-   sample running alongside to show a realistic edge data source feeding the
-   agents (once `OpcUaMachineDataTool` is wired up).
+3. Ask the **Maintenance** or **Operations** agent a question that uses live
+   telemetry from `samples/opcua-data-generator`, which simulates a single
+   production-line OPC UA server for Lyon Motor Line 1.
 
 ## Verified
 

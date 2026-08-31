@@ -104,6 +104,7 @@ public sealed class OpcUaMachineDataTool(
                 || w.AreaId.Equals(scopeId, StringComparison.OrdinalIgnoreCase)
                 || w.SiteId.Equals(scopeId, StringComparison.OrdinalIgnoreCase)
                 || scopeId.Equals("all", StringComparison.OrdinalIgnoreCase)
+                || scopeId.Equals("line", StringComparison.OrdinalIgnoreCase)
                 || scopeId.Equals("plant", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -154,15 +155,15 @@ public sealed class OpcUaMachineDataTool(
 
             var session = await GetSessionAsync(ct);
             var sb = new StringBuilder();
-            sb.AppendLine("Local OPC UA live context from Factory IQ generator:");
+            sb.AppendLine("Local OPC UA live context from the Factory IQ Lyon Motor Line 1 controller simulator:");
             sb.AppendLine(CultureInfo.InvariantCulture, $"- Endpoint: {EndpointUrl()}");
             sb.AppendLine(CultureInfo.InvariantCulture, $"- Snapshot time UTC: {now:O}");
 
-            var plantPerformance = await GetPerformanceAsync("plant", now.AddMinutes(-10), now, ct);
-            if (plantPerformance is not null)
+            var linePerformance = await GetPerformanceAsync("line", now.AddMinutes(-10), now, ct);
+            if (linePerformance is not null)
             {
                 sb.AppendLine(CultureInfo.InvariantCulture,
-                    $"- Plant derived OEE: {plantPerformance.Oee}% (availability {plantPerformance.Availability}%, performance {plantPerformance.Performance}%, quality {plantPerformance.Quality}%).");
+                    $"- Line derived OEE: {linePerformance.Oee}% (availability {linePerformance.Availability}%, performance {linePerformance.Performance}%, quality {linePerformance.Quality}%).");
             }
 
             var alarms = await GetActiveAlarmsAsync(null, ct);
@@ -191,7 +192,7 @@ public sealed class OpcUaMachineDataTool(
                 }
             }
 
-            sb.AppendLine("Use this OPC UA context as the only live plant data source. If the user asks for history, MES, work orders, or root cause beyond these nodes, say what is unavailable locally.");
+            sb.AppendLine("Use this OPC UA context as the only live production-line data source. If the user asks for another line, plant-wide history, MES, work orders, or root cause beyond these nodes, say what is unavailable locally.");
             return sb.ToString();
         }
         catch (ServiceResultException ex) when (IsConnectionFailure(ex))
@@ -347,7 +348,7 @@ public sealed class OpcUaMachineDataTool(
 
         if (query.Contains("quality") || query.Contains("defect") || query.Contains("scrap") || query.Contains("cmm"))
         {
-            return WorkUnits.Values.Where(w => w.AreaId == "area-lyon-quality");
+            return WorkUnits.Values.Where(w => w.MachineType is "CMM" or "TestBench");
         }
 
         if (query.Contains("maintenance") || query.Contains("alarm") || query.Contains("fault") || query.Contains("vibration"))
@@ -355,12 +356,12 @@ public sealed class OpcUaMachineDataTool(
             return WorkUnits.Values.Where(w => w.Signals.Any(s => s.Name == "Vibration.Velocity"));
         }
 
-        if (query.Contains("plant") || query.Contains("oee") || query.Contains("manager") || query.Contains("summary"))
+        if (query.Contains("line") || query.Contains("plant") || query.Contains("oee") || query.Contains("manager") || query.Contains("summary"))
         {
             return WorkUnits.Values;
         }
 
-        return WorkUnits.Values.Where(w => w.AreaId == "area-lyon-production");
+        return WorkUnits.Values.Where(w => w.AreaId == "area-lyon-motor-line");
     }
 
     static string EndpointUrl() =>
@@ -421,13 +422,11 @@ public sealed class OpcUaMachineDataTool(
 
         WorkUnitMetadata[] workUnits =
         [
-            new("wu-lyon-prod-tour1", "Tour CNC #1", "CNC", "wc-lyon-prod-01", "area-lyon-production", "Production Moteurs", "site-lyon", cnc),
-            new("wu-lyon-prod-tour2", "Tour CNC #2", "CNC", "wc-lyon-prod-01", "area-lyon-production", "Production Moteurs", "site-lyon", cnc),
-            new("wu-lyon-prod-rect1", "Rectifieuse #1", "Grinder", "wc-lyon-prod-01", "area-lyon-production", "Production Moteurs", "site-lyon", grinder),
-            new("wu-lyon-qual-cmm1", "Machine CMM #1", "CMM", "wc-lyon-qual-01", "area-lyon-quality", "Controle Qualite", "site-lyon", cmm),
-            new("wu-lyon-qual-bench1", "Banc de Test Moteur #1", "TestBench", "wc-lyon-qual-01", "area-lyon-quality", "Controle Qualite", "site-lyon", testBench),
-            new("wu-lyon-crank-centre1", "Centre d'Usinage #1", "CNC", "wc-lyon-crank-01", "area-lyon-crankshaft", "Usinage Vilebrequins", "site-lyon", cnc),
-            new("wu-lyon-crank-tour1", "Tour Vertical #1", "CNC", "wc-lyon-crank-01", "area-lyon-crankshaft", "Usinage Vilebrequins", "site-lyon", cnc),
+            new("wu-lyon-prod-tour1", "CNC Lathe #1", "CNC", "line-lyon-motor-01", "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge", cnc),
+            new("wu-lyon-prod-tour2", "CNC Lathe #2", "CNC", "line-lyon-motor-01", "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge", cnc),
+            new("wu-lyon-prod-rect1", "Crankshaft Grinder", "Grinder", "line-lyon-motor-01", "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge", grinder),
+            new("wu-lyon-qual-cmm1", "Inline CMM Station", "CMM", "line-lyon-motor-01", "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge", cmm),
+            new("wu-lyon-qual-bench1", "End-of-Line Test Rig", "TestBench", "line-lyon-motor-01", "area-lyon-motor-line", "Lyon Motor Line 1", "site-lyon-edge", testBench),
         ];
 
         return workUnits.ToDictionary(w => w.Id, StringComparer.OrdinalIgnoreCase);

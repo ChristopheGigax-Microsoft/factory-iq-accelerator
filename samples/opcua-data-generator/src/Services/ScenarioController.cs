@@ -37,7 +37,7 @@ public class ScenarioController : IScenarioController
     }
 
     public bool ShouldForceScrap(string productId) =>
-        Current == DemoScenario.QualityExcursion && productId == "PROD-CRANK-7B";
+        Current == DemoScenario.QualityExcursion && productId == "PROD-ENGINE-7B";
 
     public bool ShouldForceFault(string workUnitId) =>
         Current == DemoScenario.MachineFault &&

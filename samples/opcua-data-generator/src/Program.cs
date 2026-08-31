@@ -24,7 +24,7 @@ string configPath = Path.Combine(AppContext.BaseDirectory, "Server", "FactoryOpc
 var (server, application) = await FactoryOpcUaServer.StartAsync(configPath);
 
 logger.LogInformation("OPC UA server listening at opc.tcp://localhost:4855/FactoryIQ/OpcUaDataGenerator");
-logger.LogInformation("Address space root: Objects/FactoryIQ/site-lyon/...");
+logger.LogInformation("Address space root: Objects/FactoryIQ/site-lyon-edge/area-lyon-motor-line/line-lyon-motor-01/...");
 logger.LogInformation("Press Ctrl+C to stop.");
 
 using var cts = new CancellationTokenSource();

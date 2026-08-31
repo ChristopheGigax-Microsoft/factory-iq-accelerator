@@ -1,67 +1,69 @@
-# OPC UA Data Generator
+# OPC UA Line Data Generator
 
-Demo data generator for the **Factory IQ Accelerator**. Simulates the same ISA-95
-demo plant as `samples/isa-95-data-generator` (Usine Lyon), but exposes it as a
-**live OPC UA server** instead of pushing messages to Azure IoT Hub.
+Demo data generator for the **Factory IQ Accelerator**. It simulates a single
+production-line OPC UA server — **Lyon Motor Line 1** — instead of a whole plant.
+That better matches how an IT/OT team usually exposes machine, cell, or line
+controller data into SCADA and edge applications.
 
 This is the sample to run when demonstrating **Foundry Local / edge deployment**:
 it plugs directly into `OpcUaMachineDataTool.cs`
 (`src/foundry-agents/shared/FactoryIQ.Agents.Shared/Local/Tools/OpcUa/`) as a
-realistic OPC UA source a manufacturing agent can query — signals, equipment
-state, and alarms — without any Azure dependency.
+realistic line-level OPC UA source a manufacturing agent can query — signals,
+equipment state, and alarms — without any Azure dependency.
 
 > This project intentionally does **not** reference `samples/isa-95-data-generator`.
-> The ISA-95 plant model, scenarios, and simulation logic are copied and adapted
+> The ISA-95 line model, scenarios, and simulation logic are copied and adapted
 > here on purpose so each sample stays a self-contained artifact that can be
 > demoed, forked, or deployed independently.
 
 ## Architecture
 
 ```
-OPC UA Data Generator (console app)
+OPC UA Line Data Generator (console app)
   ├─ ScenarioController        (DEMO_SCENARIO env var)
   ├─ TelemetryGenerator        (per-signal values, anomalies)
   ├─ MachineStateGenerator     (equipment state machine + alarms)
   └─ FactoryOpcUaServer        (OPC Foundation .NET Standard stack)
-        └─ FactoryNodeManager  (ISA-95 topology → OPC UA address space)
+        └─ FactoryNodeManager  (one line topology → OPC UA address space)
               └─ opc.tcp://localhost:4855/FactoryIQ/OpcUaDataGenerator
 ```
 
-## ISA-95 Topology (Usine Lyon)
+## Line topology
 
-Same plant as the ISA-95/IoT Hub generator: 3 areas (Production Moteurs,
-Contrôle Qualité, Usinage Vilebrequins), 7 WorkUnits (CNC lathes, grinder, CMM,
-test bench). See `samples/isa-95-data-generator/README.md` for the full
-topology diagram.
+The server represents **one edge OPC UA endpoint for one production line**:
+
+- Site/gateway: `site-lyon-edge` — Lyon Edge Gateway
+- Area: `area-lyon-motor-line` — Lyon Motor Line 1
+- Line controller: `line-lyon-motor-01`
+- Stations/work units:
+  - `wu-lyon-prod-tour1` — CNC Lathe #1
+  - `wu-lyon-prod-tour2` — CNC Lathe #2
+  - `wu-lyon-prod-rect1` — Crankshaft Grinder
+  - `wu-lyon-qual-cmm1` — Inline CMM Station
+  - `wu-lyon-qual-bench1` — End-of-Line Test Rig
 
 ## OPC UA Address Space
 
 ```
 Objects
  └─ FactoryIQ
-      └─ site-lyon
-           ├─ area-lyon-production
-           │    └─ wc-lyon-prod-01
-           │         ├─ wu-lyon-prod-tour1
-           │         │    ├─ State                  (UInt32 — 0=Active,1=Idle,2=Held,3=Fault,4=Setup)
-           │         │    ├─ ActiveAlarmCode         (String, empty when healthy)
-           │         │    ├─ ActiveAlarmSeverity     (String)
-           │         │    ├─ Spindle.Speed           (Double, rpm)
-           │         │    ├─ Temperature.Spindle     (Double, °C)
-           │         │    ├─ Vibration.Velocity      (Double, mm/s)
-           │         │    ├─ CuttingForce            (Double, N)
-           │         │    ├─ FeedRate                (Double, mm/min)
-           │         │    └─ Coolant.FlowRate        (Double, L/min)
-           │         ├─ wu-lyon-prod-tour2  (same signal set)
-           │         └─ wu-lyon-prod-rect1  (grinder signal set)
-           ├─ area-lyon-quality
-           │    └─ wc-lyon-qual-01
-           │         ├─ wu-lyon-qual-cmm1    (CMM signal set)
-           │         └─ wu-lyon-qual-bench1  (test bench signal set)
-           └─ area-lyon-crankshaft
-                └─ wc-lyon-crank-01
-                     ├─ wu-lyon-crank-centre1
-                     └─ wu-lyon-crank-tour1
+      └─ site-lyon-edge
+           └─ area-lyon-motor-line
+                └─ line-lyon-motor-01
+                     ├─ wu-lyon-prod-tour1
+                     │    ├─ State                  (UInt32 — 0=Active,1=Idle,2=Held,3=Fault,4=Setup)
+                     │    ├─ ActiveAlarmCode         (String, empty when healthy)
+                     │    ├─ ActiveAlarmSeverity     (String)
+                     │    ├─ Spindle.Speed           (Double, rpm)
+                     │    ├─ Temperature.Spindle     (Double, degC)
+                     │    ├─ Vibration.Velocity      (Double, mm/s)
+                     │    ├─ CuttingForce            (Double, N)
+                     │    ├─ FeedRate                (Double, mm/min)
+                     │    └─ Coolant.FlowRate        (Double, L/min)
+                     ├─ wu-lyon-prod-tour2  (same CNC signal set)
+                     ├─ wu-lyon-prod-rect1  (grinder signal set)
+                     ├─ wu-lyon-qual-cmm1   (inline CMM signal set)
+                     └─ wu-lyon-qual-bench1 (end-of-line test rig signal set)
 ```
 
 Node IDs follow the pattern `{WorkUnitId}.{Signal}`, e.g.
@@ -75,10 +77,10 @@ the ISA-95/IoT Hub generator):
 
 | Value | What happens | Agent triggered |
 |-------|-------------|----------------|
-| `Normal` | Healthy baseline, ~95% OEE, 0–4% scrap | — |
+| `Normal` | Healthy line baseline, ~95% OEE, 0–4% scrap | — |
 | `TemperatureDrift` | Spindle temp on `wu-lyon-prod-tour1` drifts +0.5%/tick (max +30%) | **Maintenance** |
-| `QualityExcursion` | Scrap rate on `PROD-CRANK-7B` jumps to 10–25% | **Quality** |
-| `MachineFault` | `wu-lyon-crank-centre1` forced to `Fault` after 5 ticks — raises an OPC UA alarm | **Operations + Plant Manager** |
+| `QualityExcursion` | Scrap rate on `PROD-ENGINE-7B` jumps to 10–25% | **Quality** |
+| `MachineFault` | `wu-lyon-prod-tour2` forced to `Fault` after 5 ticks — raises an OPC UA alarm | **Operations + Plant Manager** |
 | `ShiftChange` | All WorkUnits transition `Idle → Active` over 2 ticks | — |
 
 Ticks run every 10 seconds (equipment telemetry + state/alarm transitions).
@@ -115,7 +117,7 @@ opc.tcp://localhost:4855/FactoryIQ/OpcUaDataGenerator
 
 Any OPC UA client works, e.g. [UaExpert](https://www.unified-automation.com/products/development-tools/uaexpert.html)
 or the sample clients bundled with the OPC Foundation SDK. Connect with
-security policy `None`, browse to `Objects → FactoryIQ → site-lyon → ...`, and
+security policy `None`, browse to `Objects → FactoryIQ → site-lyon-edge → area-lyon-motor-line → line-lyon-motor-01`, and
 subscribe to a signal node to watch it update every 10 seconds.
 
 ### Connect it to a Foundry Local agent
@@ -123,8 +125,8 @@ subscribe to a signal node to watch it update every 10 seconds.
 This generator is the intended data source for
 `OpcUaMachineDataTool.cs`
 (`src/foundry-agents/shared/FactoryIQ.Agents.Shared/Local/Tools/OpcUa/`).
-Implement that tool with an OPC UA client (e.g.
-`OPCFoundation.NetStandard.Opc.Ua.Client`) pointed at
-`opc.tcp://localhost:4855/FactoryIQ/OpcUaDataGenerator`, then run a Factory IQ
-agent in local mode (see `docs/foundry-local.md`) to query live equipment
-state, alarms, and telemetry — entirely offline once the model is cached.
+The local agents already include an OPC UA client implementation pointed at
+`opc.tcp://localhost:4855/FactoryIQ/OpcUaDataGenerator`. Run the generator and
+then run the portal or individual Factory IQ agents in local mode (see
+`docs/foundry-local.md`) to query live line equipment state, alarms, and
+telemetry — entirely offline once the model is cached.
