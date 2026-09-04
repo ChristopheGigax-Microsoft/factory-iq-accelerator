@@ -141,15 +141,20 @@ Use:
 - `docs/fabric-ontology.md` for implementation steps.
 - `shared/ontology/factory-iq-ontology-blueprint.yaml` for the proposed ISA-95 ontology model.
 
-IaC also creates an optional **Work IQ project connection** (`work-iq-connection`) when `work_iq_connection_target` (Terraform) is set:
+IaC also creates an optional **Work IQ MCP project connection** (`work-iq-connection`) when `enable_work_iq_connection = true`. Work IQ only supports **bring-your-own Entra app (On-Behalf-Of)** authentication — there is no shared/first-party app option — so Terraform owns the full lifecycle:
 
-- `category: RemoteTool`
-- `authType: UserEntraToken`
-- `audience: https://work.microsoft.com`
-- `metadata.type: work_iq_preview`
-- `target: <Work IQ service endpoint>`
+1. **`module.workiq_app`** (`infra/terraform/modules/workiq_app/`) registers a dedicated confidential-client Entra app + service principal, grants the `WorkIQAgent.Ask` delegated permission, and issues a client secret.
+2. **`azapi_resource.work_iq_connection`** creates the Foundry project connection as an OAuth2 MCP connection:
+   - `category: RemoteTool`
+   - `group: ServicesAndApps` (OAuth2 fields — `TokenUrl`/`AuthorizationUrl`/`RefreshUrl`/`Scopes`/`Credentials` — must live at the top level of `properties`, **not** nested under `metadata`, or Foundry silently drops them and the MCP call fails with a 401 "Access token is empty")
+   - `metadata.type: work_iq_mcp`
+   - `target: https://workiq.svc.cloud.microsoft/mcp` (`var.work_iq_mcp_endpoint`)
+   - `credentials`: the app's client ID/secret from `module.workiq_app`
+3. **`null_resource.work_iq_redirect_uri`** closes the loop: Foundry only generates the connection's OAuth `redirectUrl` once the connection itself exists, so the Entra app can't declare it up front. This resource runs `az ad app update --web-redirect-uris <redirectUrl>` via `local-exec`, triggered on the app's client ID + the connection's exported `properties.redirectUrl`, so the app's Web redirect URI stays in sync automatically on every `apply` — no manual CLI step required. (`azuread_application.work_iq` sets `lifecycle.ignore_changes = [web]` so Terraform doesn't fight this out-of-band update.)
 
-The **Maintenance Agent** and **Plant Manager Agent** use this connection to query and manage Microsoft 365 work items (Planner tasks, open action items, escalation tracking).
+Each Factory IQ agent builds this as a standard MCP tool (`ResponseTool.CreateMcpTool`, server label `work-iq`) rather than the A2A tool type — the SDK's `WorkIQPreviewTool`/A2A path never exposed the "send credentials for agent card" option needed for A2A auth, so the MCP endpoint is the supported integration path.
+
+The **Maintenance Agent** and **Plant Manager Agent** use this connection to query and manage Microsoft 365 work items (Planner tasks, open action items, escalation tracking). On first use, expect a one-time `CONSENT_REQUIRED` (`-32006`) response with a consent URL — this is the documented OAuth consent flow, not an error.
 
 ## Prerequisites
 
@@ -177,6 +182,8 @@ export FABRIC_WORKSPACE_ID="<from connection.json: workspaceId>"
 ```
 
 > Fabric OAuth/admin consent remains a manual governance step: tenant admin grants consent once, then end users complete first-use consent if prompted.
+
+> Work IQ requires the tenant admin to grant admin consent for the `WorkIQAgent.Ask` permission on the dedicated Entra app once (Terraform grants this automatically via `azuread_service_principal_delegated_permission_grant`, but tenant policy may still require an admin to approve it in the portal). End users then complete a one-time OAuth consent (`CONSENT_REQUIRED`/`-32006`) on first call, and must hold a Microsoft 365 Copilot license for Work IQ MCP calls to succeed.
 
 Before running Foundry agents, validate the published Data Agent MCP endpoint can enumerate tools:
 
