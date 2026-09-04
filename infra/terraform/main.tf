@@ -14,6 +14,14 @@ terraform {
       source  = "microsoft/fabric"
       version = ">= 1.0.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = ">= 3.0.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.11.0"
+    }
   }
 }
 
@@ -26,6 +34,10 @@ provider "azurerm" {
 provider "azapi" {
   subscription_id = var.subscription_id
   tenant_id       = var.tenant_id
+}
+
+provider "azuread" {
+  tenant_id = var.tenant_id
 }
 
 provider "fabric" {
@@ -42,7 +54,6 @@ locals {
   workspace_id                 = var.workspace_id
   ontology_name                = replace("${local.base_name}_ontology", "-", "_")
   fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
-  work_iq_connection_target    = trimspace(var.work_iq_connection_target)
 }
 
 resource "azurerm_resource_group" "this" {
@@ -126,6 +137,11 @@ module "rbac" {
   storage_account_id     = module.storage_account.id
 }
 
+module "workiq_app" {
+  source = "./modules/workiq_app"
+  count  = var.enable_work_iq_connection ? 1 : 0
+}
+
 # ---------------------------------------------------------------------------
 # Connections (AI Search) — on the Foundry resource, not on a Hub
 # ---------------------------------------------------------------------------
@@ -199,11 +215,19 @@ resource "azapi_resource" "fabric_iq_data_agent_connection" {
 
 # ---------------------------------------------------------------------------
 # Work IQ project connection — connects Maintenance and Plant Manager agents
-# to Microsoft 365 work management (Planner, Tasks, work orders).
-# Only provisioned when work_iq_connection_target is set.
+# to Microsoft 365 work management (Planner, Tasks, work orders) via the
+# Work IQ A2A agent endpoint.
+#
+# Per Microsoft Learn's Work IQ tool doc ("Authentication and security"),
+# only a Bring-your-own Entra app with delegated OAuth2 (On-Behalf-Of) is
+# supported — app-only/managed identity auth is not supported. The
+# workiq_app module registers that confidential-client app and issues its
+# client secret; this resource wires it into a RemoteA2A Foundry connection.
+#
+# Only provisioned when enable_work_iq_connection = true.
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "work_iq_connection" {
-  count                     = local.work_iq_connection_target != "" ? 1 : 0
+  count                     = var.enable_work_iq_connection ? 1 : 0
   type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
   name                      = "work-iq-connection"
   parent_id                 = module.ai_foundry.project_id
@@ -211,14 +235,23 @@ resource "azapi_resource" "work_iq_connection" {
 
   body = {
     properties = {
-      authType      = "UserEntraToken"
-      category      = "RemoteTool"
+      authType      = "OAuth2"
+      category      = "RemoteA2A"
       isSharedToAll = false
-      target        = local.work_iq_connection_target
-      audience      = "https://work.microsoft.com"
+      target        = var.work_iq_a2a_endpoint
       metadata = {
-        type = "work_iq_preview"
+        type             = "work_iq_preview"
+        TokenUrl         = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
+        AuthorizationUrl = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/authorize"
+        RefreshUrl       = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
+        Scopes           = "${var.work_iq_scope},offline_access"
+      }
+      credentials = {
+        clientId     = module.workiq_app[0].client_id
+        clientSecret = module.workiq_app[0].client_secret
       }
     }
   }
+
+  response_export_values = ["properties.metadata"]
 }
