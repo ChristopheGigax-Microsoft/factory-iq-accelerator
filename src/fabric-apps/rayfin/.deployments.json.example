@@ -1,0 +1,15 @@
+{
+  "deployments": {
+    "<workspace-alias>": {
+      "fabricItemId": "<fabric-app-item-guid>",
+      "fabricApiUrl": "<fabric-baas-api-url>",
+      "fabricWorkspaceId": "<fabric-workspace-guid>",
+      "fabricTenantId": "<entra-tenant-guid>",
+      "publishableKey": "<fabric-app-publishable-key>",
+      "hostingUrl": "<fabric-app-hosting-url>",
+      "fabricDeepLink": "<fabric-portal-deep-link>",
+      "deployedAt": "<iso-8601-timestamp>"
+    }
+  },
+  "active": "<workspace-alias>"
+}

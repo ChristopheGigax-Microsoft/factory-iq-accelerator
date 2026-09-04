@@ -27,6 +27,7 @@ obj/
 # Generated deployment artifacts
 connection.json
 *.plan
+.deployments.json
 
 # Secrets and credentials
 *.pem
