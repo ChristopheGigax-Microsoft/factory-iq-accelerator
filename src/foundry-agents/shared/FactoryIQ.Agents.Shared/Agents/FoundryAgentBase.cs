@@ -15,6 +15,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
     private const string KnowledgeBaseToolLabel = "knowledge-base";
     private const string KnowledgeBaseRetrieveToolName = "knowledge_base_retrieve";
     private const string KnowledgeBaseMcpApiVersion = "2026-05-01-preview";
+    private const string WorkIqToolLabel = "work-iq";
+    private const string WorkIqMcpServerUrl = "https://workiq.svc.cloud.microsoft/mcp";
 
     private readonly AIProjectClient _projectClient;
     private readonly AgentRunner _agentRunner;
@@ -244,14 +246,31 @@ public abstract class FoundryAgentBase : IFactoryAgent
             return true;
         }
 
-        string expectedConnection = workIqProjectConnectionId ?? _config.WorkIqProjectConnectionName;
-        return definition.Tools
-            .Any(tool => tool.ToString()?.Contains(expectedConnection, StringComparison.Ordinal) == true);
+        McpTool? workIqTool = definition.Tools
+            .OfType<McpTool>()
+            .FirstOrDefault(tool => string.Equals(tool.ServerLabel, WorkIqToolLabel, StringComparison.Ordinal));
+        if (workIqTool is null)
+        {
+            return false;
+        }
+
+        return Uri.TryCreate(workIqTool.ServerUri?.ToString(), UriKind.Absolute, out Uri? existingServerUri)
+            && Uri.Equals(existingServerUri, new Uri(WorkIqMcpServerUrl));
+
+        // project_connection_id is set at creation time via JsonPatch but cannot be read back (write-only path),
+        // so workIqProjectConnectionId isn't compared here — mirrors HasExpectedKnowledgeBaseTool.
     }
 
-    private ResponseTool BuildWorkIqTool(string workIqProjectConnectionId)
+    private McpTool BuildWorkIqTool(string workIqProjectConnectionId)
     {
-        return new WorkIQPreviewTool(workIqProjectConnectionId);
+        McpTool tool = ResponseTool.CreateMcpTool(
+            serverLabel: WorkIqToolLabel,
+            serverUri: new Uri(WorkIqMcpServerUrl),
+            toolCallApprovalPolicy: GlobalMcpToolCallApprovalPolicy.NeverRequireApproval);
+
+        tool.Patch.Set("$.project_connection_id"u8, workIqProjectConnectionId);
+
+        return tool;
     }
 
     private async Task<string> ResolveProjectConnectionIdAsync(string connectionNameOrId, CancellationToken ct)

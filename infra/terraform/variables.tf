@@ -57,14 +57,14 @@ variable "fabric_data_agent_mcp_target" {
 
 variable "enable_work_iq_connection" {
   type        = bool
-  description = "Whether to provision the Work IQ Entra app registration and the Foundry Work IQ OAuth2/RemoteA2A project connection."
+  description = "Whether to provision the Work IQ Entra app registration and the Foundry Work IQ OAuth2/RemoteTool (MCP) project connection."
   default     = false
 }
 
-variable "work_iq_a2a_endpoint" {
+variable "work_iq_mcp_endpoint" {
   type        = string
-  description = "Work IQ A2A agent endpoint (target) for the Foundry OAuth2/RemoteA2A connection."
-  default     = "https://workiq.svc.cloud.microsoft/a2a/"
+  description = "Work IQ MCP server endpoint (target) for the Foundry OAuth2/RemoteTool connection."
+  default     = "https://workiq.svc.cloud.microsoft/mcp"
 }
 
 variable "work_iq_scope" {

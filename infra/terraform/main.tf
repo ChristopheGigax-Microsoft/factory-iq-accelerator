@@ -216,13 +216,13 @@ resource "azapi_resource" "fabric_iq_data_agent_connection" {
 # ---------------------------------------------------------------------------
 # Work IQ project connection — connects Maintenance and Plant Manager agents
 # to Microsoft 365 work management (Planner, Tasks, work orders) via the
-# Work IQ A2A agent endpoint.
+# Work IQ MCP server endpoint (https://workiq.svc.cloud.microsoft/mcp).
 #
-# Per Microsoft Learn's Work IQ tool doc ("Authentication and security"),
-# only a Bring-your-own Entra app with delegated OAuth2 (On-Behalf-Of) is
+# Per Microsoft Learn's Work IQ MCP quickstart for Foundry, only a
+# Bring-your-own Entra app with delegated OAuth2 (On-Behalf-Of) is
 # supported — app-only/managed identity auth is not supported. The
 # workiq_app module registers that confidential-client app and issues its
-# client secret; this resource wires it into a RemoteA2A Foundry connection.
+# client secret; this resource wires it into an OAuth2 Foundry MCP connection.
 #
 # Only provisioned when enable_work_iq_connection = true.
 # ---------------------------------------------------------------------------
@@ -236,11 +236,11 @@ resource "azapi_resource" "work_iq_connection" {
   body = {
     properties = {
       authType      = "OAuth2"
-      category      = "RemoteA2A"
+      category      = "RemoteTool"
       isSharedToAll = false
-      target        = var.work_iq_a2a_endpoint
+      target        = var.work_iq_mcp_endpoint
       metadata = {
-        type             = "work_iq_preview"
+        type             = "work_iq_mcp"
         TokenUrl         = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
         AuthorizationUrl = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/authorize"
         RefreshUrl       = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
