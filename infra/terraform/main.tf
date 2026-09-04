@@ -22,6 +22,10 @@ terraform {
       source  = "hashicorp/time"
       version = ">= 0.11.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2.0"
+    }
   }
 }
 
@@ -138,9 +142,8 @@ module "rbac" {
 }
 
 module "workiq_app" {
-  source        = "./modules/workiq_app"
-  count         = var.enable_work_iq_connection ? 1 : 0
-  redirect_uris = var.work_iq_redirect_uris
+  source = "./modules/workiq_app"
+  count  = var.enable_work_iq_connection ? 1 : 0
 }
 
 # ---------------------------------------------------------------------------
@@ -260,4 +263,35 @@ resource "azapi_resource" "work_iq_connection" {
   }
 
   response_export_values = ["properties.redirectUrl", "properties.metadata"]
+}
+
+# ---------------------------------------------------------------------------
+# Automates "Add the redirect URI to your app registration" from the Work IQ
+# MCP quickstart. Foundry only generates properties.redirectUrl once
+# azapi_resource.work_iq_connection exists (a per-connection GUID reply URL),
+# so the Entra app can't declare it as a static value up front — this is
+# a genuine chicken-and-egg dependency (app must exist before the connection
+# can reference its client_id/secret; the connection must exist before its
+# redirect URL is known). A null_resource + az CLI call breaks the cycle:
+# it runs after the connection is created/updated and re-applies whenever
+# the exported redirectUrl changes, keeping the app's redirect URIs in sync
+# without requiring a manual "az ad app update" step after every apply.
+#
+# Note: azapi_resource doesn't stably persist response-only fields (like
+# redirectUrl) in its tracked body across refreshes, so this null_resource
+# may show as "must be replaced" on every `terraform plan` even when nothing
+# changed. That's a harmless azapi quirk here — the underlying `az ad app
+# update` call is idempotent (same redirect URI every time).
+# ---------------------------------------------------------------------------
+resource "null_resource" "work_iq_redirect_uri" {
+  count = var.enable_work_iq_connection ? 1 : 0
+
+  triggers = {
+    application_client_id = module.workiq_app[0].client_id
+    redirect_uri          = azapi_resource.work_iq_connection[0].output.properties.redirectUrl
+  }
+
+  provisioner "local-exec" {
+    command = "az ad app update --id ${self.triggers.application_client_id} --web-redirect-uris ${self.triggers.redirect_uri}"
+  }
 }

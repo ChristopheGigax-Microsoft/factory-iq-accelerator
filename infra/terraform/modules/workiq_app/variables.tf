@@ -30,6 +30,6 @@ variable "secret_end_date_relative" {
 
 variable "redirect_uris" {
   type        = list(string)
-  description = "OAuth redirect URIs (Foundry connection reply URLs, e.g. https://global.consent.azure-apim.net/redirect/<connector-guid>) to register on the app's Web platform. Foundry only issues this URL after the connection is created, so it must be added in a follow-up apply once known."
+  description = "Initial OAuth redirect URIs to set on the app's Web platform at creation time. After creation, the actual redirect URI (the Foundry connection's per-connection reply URL) is kept in sync out-of-band by root's null_resource.work_iq_redirect_uri via `az ad app update`; the azuread_application resource ignores drift on this field (see lifecycle block below) so it doesn't fight that automation."
   default     = []
 }

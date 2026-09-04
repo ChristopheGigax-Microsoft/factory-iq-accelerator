@@ -72,9 +72,3 @@ variable "work_iq_scope" {
   description = "OAuth2 delegated scope requested for the Work IQ connection token."
   default     = "api://workiq.svc.cloud.microsoft/WorkIQAgent.Ask"
 }
-
-variable "work_iq_redirect_uris" {
-  type        = list(string)
-  description = "OAuth redirect URIs to register on the Work IQ Entra app (the Foundry connection's reply URL, e.g. https://global.consent.azure-apim.net/redirect/<connector-guid>). Foundry only generates this value after azapi_resource.work_iq_connection is created — read it via `az rest ... connections/work-iq-connection` (properties.redirectUrl) and add it here in a follow-up apply."
-  default     = []
-}

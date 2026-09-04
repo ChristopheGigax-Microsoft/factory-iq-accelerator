@@ -38,6 +38,16 @@ resource "azuread_application" "work_iq" {
   web {
     redirect_uris = var.redirect_uris
   }
+
+  lifecycle {
+    # The redirect URI is authoritatively managed out-of-band by
+    # null_resource.work_iq_redirect_uri in the root module (via `az ad app
+    # update`), because Foundry only generates the connection's reply URL
+    # after this app already exists — a genuine apply-order cycle that HCL
+    # alone can't express. Ignore drift here so Terraform doesn't try to
+    # reset it back to var.redirect_uris on every plan.
+    ignore_changes = [web]
+  }
 }
 
 resource "azuread_service_principal" "work_iq" {
