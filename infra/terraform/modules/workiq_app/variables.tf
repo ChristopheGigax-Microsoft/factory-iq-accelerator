@@ -27,3 +27,9 @@ variable "secret_end_date_relative" {
   description = "Relative expiry for the client secret (Terraform time_rotating/time_offset style duration string, e.g. 8760h for 1 year)"
   default     = "8760h"
 }
+
+variable "redirect_uris" {
+  type        = list(string)
+  description = "OAuth redirect URIs (Foundry connection reply URLs, e.g. https://global.consent.azure-apim.net/redirect/<connector-guid>) to register on the app's Web platform. Foundry only issues this URL after the connection is created, so it must be added in a follow-up apply once known."
+  default     = []
+}

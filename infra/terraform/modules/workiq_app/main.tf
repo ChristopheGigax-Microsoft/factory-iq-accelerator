@@ -36,7 +36,7 @@ resource "azuread_application" "work_iq" {
   }
 
   web {
-    redirect_uris = []
+    redirect_uris = var.redirect_uris
   }
 }
 

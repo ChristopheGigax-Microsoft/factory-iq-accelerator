@@ -138,8 +138,9 @@ module "rbac" {
 }
 
 module "workiq_app" {
-  source = "./modules/workiq_app"
-  count  = var.enable_work_iq_connection ? 1 : 0
+  source        = "./modules/workiq_app"
+  count         = var.enable_work_iq_connection ? 1 : 0
+  redirect_uris = var.work_iq_redirect_uris
 }
 
 # ---------------------------------------------------------------------------
@@ -235,23 +236,28 @@ resource "azapi_resource" "work_iq_connection" {
 
   body = {
     properties = {
-      authType      = "OAuth2"
-      category      = "RemoteTool"
-      isSharedToAll = false
-      target        = var.work_iq_mcp_endpoint
-      metadata = {
-        type             = "work_iq_mcp"
-        TokenUrl         = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
-        AuthorizationUrl = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/authorize"
-        RefreshUrl       = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
-        Scopes           = "${var.work_iq_scope},offline_access"
+      authType         = "OAuth2"
+      group            = "ServicesAndApps"
+      category         = "RemoteTool"
+      isSharedToAll    = false
+      target           = var.work_iq_mcp_endpoint
+      TokenUrl         = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
+      AuthorizationUrl = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/authorize"
+      RefreshUrl       = "https://login.microsoftonline.com/${var.tenant_id}/oauth2/v2.0/token"
+      Scopes = [
+        var.work_iq_scope,
+        "offline_access",
+      ]
+      Credentials = {
+        ClientId     = module.workiq_app[0].client_id
+        ClientSecret = module.workiq_app[0].client_secret
       }
-      credentials = {
-        clientId     = module.workiq_app[0].client_id
-        clientSecret = module.workiq_app[0].client_secret
+      metadata = {
+        type    = "work_iq_mcp"
+        ApiType = "Azure"
       }
     }
   }
 
-  response_export_values = ["properties.metadata"]
+  response_export_values = ["properties.redirectUrl", "properties.metadata"]
 }
