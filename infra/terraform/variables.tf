@@ -55,6 +55,12 @@ variable "fabric_data_agent_mcp_target" {
   default     = ""
 }
 
+variable "routing_profile_path" {
+  type        = string
+  description = "Optional path to a customer routing profile (routes.json). Leave empty for Bronze-only deployment."
+  default     = ""
+}
+
 variable "enable_work_iq_connection" {
   type        = bool
   description = "Whether to provision the Work IQ Entra app registration and the Foundry Work IQ OAuth2/RemoteTool (MCP) project connection."

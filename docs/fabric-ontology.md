@@ -22,9 +22,9 @@ Terraform now provisions:
    - core ISA-95 operations entity types
    - relationship types
    - Kusto data bindings to Eventhouse tables
-2. Eventhouse Silver physical model (`infra/terraform/modules/eventhouse/definitions/silver_model.kql`) with:
-   - table creation (`.create-merge`) for ISA-95 operational facts
-   - update policies (`.alter table ... policy update`) from `TelemetryLanding`
+2. Eventhouse Bronze physical model
+   (`infra/terraform/modules/eventhouse/definitions/bronze_model.kql`) with the
+   lossless `RawTelemetry` table.
 3. `fabric_data_agent` definition includes:
    - existing KQL datasource
    - ontology datasource (`type: ontology`) bound to the newly created ontology item
@@ -35,7 +35,8 @@ Terraform now provisions:
 Implementation files:
 
 - `infra/terraform/modules/ontology/*`
-- `infra/terraform/modules/eventhouse/definitions/silver_model.kql`
+- `infra/terraform/modules/eventhouse/definitions/bronze_model.kql`
+- `samples/routing/isa95-demo/routes.json`
 - `infra/terraform/modules/data_agent/definitions/datasource_ontology.json.tmpl`
 - `infra/terraform/main.tf`
 - `infra/terraform/outputs.tf`
@@ -80,55 +81,26 @@ Data Agent instructions are ontology-aware and enforce this strategy:
 - Use KQL for operational diagnostics and time-series evidence.
 - Keep responses grounded and actionable.
 
-## Bronze -> Silver update policies (detailed behavior)
+## Bronze and optional ontology bindings
 
-The KQL script `infra/terraform/modules/eventhouse/definitions/silver_model.kql` defines update policies that run automatically when new rows are ingested into `TelemetryLanding`.
+The accelerator no longer deploys a universal Silver schema. It always deploys
+`RawTelemetry`; each customer may provide a routing profile that creates the
+tables required by its ontology bindings.
 
-### 1. `EquipmentTelemetry`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows with `Timestamp`, `WorkUnitId`, and `Signal` populated
-- **Projection**: `Timestamp`, `WorkUnitId`, `Signal`, `Value`
-- **Purpose**: normalized time-series telemetry for trend charts and anomaly detection
+The optional profile under `samples/routing/isa95-demo/` recreates the
+`EquipmentTelemetry`, `EquipmentActual`, `WorkRequest`, `WorkResponse`,
+`MaterialActual`, and `QualityTestResult` tables for the repository's ISA-95
+generator. It is a demonstration profile, not an accelerator contract.
 
-### 2. `EquipmentActual`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows where `Payload.State` exists
-- **Projection**:
-  - `Timestamp` = `Payload.Timestamp` fallback to landing `Timestamp`
-  - `WorkUnitId` = `Payload.WorkUnitId` fallback to landing `WorkUnitId`
-  - `State`, `StateReason`, `OperatorId` from payload
-- **Purpose**: machine state/event history (running, fault, held, etc.)
-
-### 3. `WorkRequest`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows where `Payload.RequestId` exists
-- **Projection**: request/order metadata (`RequestId`, `WorkCenterId`, `ProductId`, quantities, schedule, status)
-- **Purpose**: production order intent layer (planned work)
-
-### 4. `WorkResponse`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows where `Payload.ResponseId` exists
-- **Projection**: execution outcomes (`ResponseId`, `RequestId`, actual times, produced/rejected quantities, status)
-- **Purpose**: realized production results (actual work completion)
-
-### 5. `MaterialActual`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows where both `Payload.LotId` and `Payload.Direction` exist
-- **Projection**: lot/material movement fields (lot, material, work center, quantity, UoM, direction)
-- **Purpose**: traceability of consumed/produced material flows
-
-### 6. `QualityTestResult`
-- **Source**: `TelemetryLanding`
-- **Filter**: rows where `Payload.TestId` exists
-- **Projection**: quality inspection attributes (`TestId`, `ResponseId`, limits, measured value, result, severity)
-- **Purpose**: defect/scrap and quality outcome analysis
+See [Customer routing profiles](routing-profiles.md).
 
 ## Operational implications
 
-- Policies are **idempotent to deploy** (`.alter table ... policy update`), so Terraform can reapply safely.
-- Policies are **event-driven on ingestion**: they transform only newly ingested Bronze records.
-- If an expected payload field is missing, that specific Silver projection does not get a row for that event.
-- Dashboards and querysets are intended to read Silver tables, not `TelemetryLanding` directly.
+- Routing policies are event-driven and transform only newly ingested Bronze
+  records.
+- The default dashboard and queryset read `RawTelemetry`.
+- Customer ontology bindings must target tables created by the selected routing
+  profile.
 
 ## Graph model population
 

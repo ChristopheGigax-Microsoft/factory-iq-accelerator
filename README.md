@@ -45,7 +45,7 @@ In a single deploy, Factory IQ Accelerator provisions:
 |-------|----------------|
 | 🏭 **Data Foundation** | Microsoft Fabric capacity, workspace, Eventhouse, KQL database, Eventstream |
 | 📊 **Real-Time Monitoring** | Fabric KQL Queryset + KQL Dashboard bootstrap for machine performance verification |
-| 📐 **Domain Model** | ISA-95-aligned KQL tables, update policies, and plant hierarchy seeding |
+| 📐 **Data Modeling** | Lossless Bronze ingestion plus optional customer-defined KQL routing profiles |
 | 🔍 **Search & Knowledge** | Azure AI Search, knowledge base, vector index over maintenance/quality docs |
 | 🤖 **AI Agents** | 5 manufacturing agents on Azure AI Foundry (C#/.NET 10) |
 | 🔗 **Live Connectors** | Fabric Data Agent (MCP, optionally ontology-enriched), Work IQ (M365 tasks), Foundry IQ (RAG) |
@@ -113,10 +113,11 @@ terraform -chdir=infra/terraform output \
   -json connection_contract > connection.json
 ```
 
-The same Terraform apply also provisions the Eventhouse **Bronze/Silver** model used by RTI dashboards:
-- `TelemetryLanding` (Bronze)
-- `EquipmentTelemetry`, `EquipmentActual`, `WorkRequest`, `WorkResponse`, `MaterialActual`, `QualityTestResult` (Silver)
-- update policies from Bronze to Silver
+The same Terraform apply provisions the Eventhouse `RawTelemetry` **Bronze**
+table and an ingestion-focused RTI dashboard. Silver is intentionally
+customer-defined: optionally point `routing_profile_path` at a profile that
+declares target tables and KQL update policies. See
+[Customer routing profiles](docs/routing-profiles.md).
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "eventstream-baseline",
   "description": "Baseline Eventstream for factory telemetry landing. Routes real-time equipment data to the Eventhouse KQL database.",
-  "compatibilityLevel": "1.0",
+  "compatibilityLevel": "1.1",
   "inputs": [
     {
       "id": "custom-app-input",
@@ -15,7 +15,7 @@
       "type": "Eventhouse",
       "displayName": "Eventhouse Output",
       "destination": {
-        "table": "TelemetryLanding"
+        "table": "RawTelemetry"
       }
     }
   ],

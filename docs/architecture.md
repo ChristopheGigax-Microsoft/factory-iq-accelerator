@@ -34,15 +34,21 @@ Terraform provisions these logical modules:
 - `eventhouse`
 - `eventstream`
 
-### Eventhouse Bronze/Silver model
+### Eventhouse Bronze and optional routing
 
 The Eventhouse module provisions and maintains:
 
-- **Bronze** ingestion table: `TelemetryLanding`
-- **Silver** operational tables: `EquipmentTelemetry`, `EquipmentActual`, `WorkRequest`, `WorkResponse`, `MaterialActual`, `QualityTestResult`
-- **Update policies** from `TelemetryLanding` to each Silver table for automatic projection when matching payload fields exist.
+- **Bronze** ingestion table: `RawTelemetry`
+- a stable envelope around the complete source payload
+- an ingestion-focused real-time dashboard and queryset
+- an optional routing-profile deployer for customer-owned Silver tables
 
-Real-time dashboard/queryset assets are intentionally wired to the Silver tables.
+No Silver schema is imposed by the accelerator. Set `routing_profile_path` to
+deploy customer-defined tables, KQL functions, and update policies. The
+ISA-95 generator profile under `samples/routing/isa95-demo/` is an optional
+demonstration only.
+
+See [Customer routing profiles](routing-profiles.md).
 
 ## Contract-Driven Integration
 

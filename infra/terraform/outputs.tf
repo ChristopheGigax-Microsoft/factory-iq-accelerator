@@ -8,6 +8,8 @@ output "connection_contract" {
     workspaceId                        = local.workspace_id
     eventhouseId                       = module.eventhouse.eventhouse_id
     kqlDatabase                        = module.eventhouse.kql_database_name
+    rawTelemetryTable                  = "RawTelemetry"
+    routingProfileEnabled              = local.routing_profile_path != ""
     dataAgentId                        = module.data_agent.data_agent_id
     fabricOntologyId                   = module.ontology.ontology_id
     fabricOntologyName                 = module.ontology.ontology_name

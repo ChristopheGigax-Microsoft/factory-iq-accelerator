@@ -8,6 +8,16 @@ terraform -chdir=infra/terraform plan -var-file=environments/dev.tfvars
 terraform -chdir=infra/terraform apply -var-file=environments/dev.tfvars
 ```
 
+The default deployment creates only the `RawTelemetry` Bronze table. To deploy
+customer-owned Silver routes, set the optional profile path:
+
+```hcl
+routing_profile_path = "../../customer-routing/routes.json"
+```
+
+See [`docs/routing-profiles.md`](../../docs/routing-profiles.md) for the profile
+format and the included ISA-95 demo profile.
+
 ## Export connection contract
 
 ```bash

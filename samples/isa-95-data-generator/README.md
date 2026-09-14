@@ -8,8 +8,8 @@ Demo data generator for the **Factory IQ Accelerator**. Simulates a complete ISA
 Azure Function (timer × 2)
   └─→ Azure IoT Hub
         └─→ Fabric Eventstream (Custom Source: IoT Hub)
-              └─→ TelemetryLanding (Bronze KQL table)
-                    └─→ Silver tables (KQL update policies)
+              └─→ RawTelemetry (Bronze KQL table)
+                    └─→ Optional ISA-95 demo routing profile
                           ├─ EquipmentTelemetry
                           ├─ EquipmentActual
                           ├─ WorkRequest
@@ -54,51 +54,44 @@ Concrete schema files used for the mapping below:
 | Material actual / consumption-production | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-Material.xsd |
 | Quality test / quality event | https://github.com/MESAInternational/B2MML-BatchML/blob/master/Schema/B2MML-OperationsTest.xsd |
 
-All messages use a single `TelemetryLanding` envelope. The KQL update policies dispatch to Silver tables based on which `Payload` fields are present:
+All source events are preserved inside the stable `RawTelemetry` envelope:
 
-| Signal | `Payload` discriminant | Silver table |
-|--------|----------------------|-------------|
-| `Spindle.Speed`, `Temperature.*`, `Vibration.*`, … | `null` | `EquipmentTelemetry` |
-| `State` | `{ State, StateReason, OperatorId }` | `EquipmentActual` |
-| `WorkRequest` | `{ RequestId, WorkCenterId, … }` | `WorkRequest` |
-| `WorkResponse` | `{ ResponseId, RequestId, … }` | `WorkResponse` |
-| `MaterialActual` | `{ LotId, Direction, … }` | `MaterialActual` |
-| `QualityTest` | `{ TestId, Parameter, MeasuredValue, … }` | `QualityTestResult` |
-
-**Example — Equipment Telemetry:**
 ```json
 {
-  "Timestamp": "2026-07-28T11:00:00Z",
-  "WorkUnitId": "wu-lyon-prod-tour1",
-  "Signal": "Temperature.Spindle",
-  "Value": 62.4,
-  "Payload": null
-}
-```
-
-**Example — Quality Test Result:**
-```json
-{
-  "Timestamp": "2026-07-28T11:15:00Z",
-  "WorkUnitId": "wu-lyon-qual-cmm1",
-  "Signal": "QualityTest",
-  "Value": 49.97,
+  "IngestedAt": "2026-07-28T11:15:01Z",
+  "EventTime": "2026-07-28T11:15:00Z",
+  "SourceSystem": "Isa95DataGenerator",
+  "SourceSchema": "isa95-demo.v1",
+  "SourceRecordId": "38673a17-241a-42cf-98cb-926dedcfe138",
   "Payload": {
-    "TestId": "QT-20260728-00042",
+    "Timestamp": "2026-07-28T11:15:00Z",
     "WorkUnitId": "wu-lyon-qual-cmm1",
-    "ResponseId": "WRS-20260728-0003",
-    "LotId": "LOT-20260728-0007",
-    "TestSpecificationId": "SPEC-CRANK7B-DIAM",
-    "Parameter": "Diameter.Main",
-    "MeasuredValue": 49.97,
-    "LowerLimit": 49.75,
-    "UpperLimit": 50.00,
-    "UnitOfMeasure": "mm",
-    "Result": "Pass",
-    "Severity": "None"
+    "Signal": "QualityTest",
+    "Value": 49.97,
+    "Payload": {
+      "TestId": "QT-20260728-00042",
+      "Result": "Pass"
+    }
   }
 }
 ```
+
+The optional profile at `samples/routing/isa95-demo/routes.json` interprets
+the inner demo event and dispatches it by `Signal`:
+
+| `Payload.Signal` | Silver table |
+|------------------|--------------|
+| equipment signals such as `Temperature.*` | `EquipmentTelemetry` |
+| `State` | `EquipmentActual` |
+| `WorkRequest` | `WorkRequest` |
+| `WorkResponse` | `WorkResponse` |
+| `MaterialActual` | `MaterialActual` |
+| `QualityTest` | `QualityTestResult` |
+
+Enable it with
+`routing_profile_path = "../../samples/routing/isa95-demo/routes.json"` in the
+accelerator Terraform configuration. Without that profile, the generator data
+remains available intact in Bronze.
 
 ## Demo Scenarios
 

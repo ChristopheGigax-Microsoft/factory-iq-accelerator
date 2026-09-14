@@ -22,22 +22,32 @@ resource "fabric_kql_database" "this" {
 }
 
 locals {
-  silver_model_script_path = "${path.module}/definitions/silver_model.kql"
+  bronze_model_script_path = "${path.module}/definitions/bronze_model.kql"
+  routing_profile_enabled  = trimspace(var.routing_profile_path) != ""
+  routing_profile_dir      = local.routing_profile_enabled ? dirname(var.routing_profile_path) : path.module
+  routing_profile_files    = local.routing_profile_enabled ? fileset(local.routing_profile_dir, "**") : toset([])
+  routing_profile_hash = local.routing_profile_enabled ? sha256(jsonencode([
+    for file in sort(tolist(local.routing_profile_files)) :
+    {
+      path = file
+      hash = filesha256("${local.routing_profile_dir}/${file}")
+    }
+  ])) : ""
 }
 
-resource "terraform_data" "silver_model" {
+resource "terraform_data" "bronze_model" {
   triggers_replace = [
     sha256(jsonencode({
       query_uri   = fabric_kql_database.this.properties.query_service_uri
       database    = var.kql_database_name
-      script_hash = filesha256(local.silver_model_script_path)
+      script_hash = filesha256(local.bronze_model_script_path)
     }))
   ]
 
   input = {
     query_uri   = fabric_kql_database.this.properties.query_service_uri
     database    = var.kql_database_name
-    script_path = local.silver_model_script_path
+    script_path = local.bronze_model_script_path
   }
 
   provisioner "local-exec" {
@@ -96,12 +106,50 @@ resource "terraform_data" "silver_model" {
   depends_on = [fabric_kql_database.this]
 }
 
+resource "terraform_data" "routing_profile" {
+  count = local.routing_profile_enabled ? 1 : 0
+
+  triggers_replace = [
+    sha256(jsonencode({
+      query_uri    = fabric_kql_database.this.properties.query_service_uri
+      database     = var.kql_database_name
+      profile_path = var.routing_profile_path
+      profile_hash = local.routing_profile_hash
+    }))
+  ]
+
+  input = {
+    query_uri    = fabric_kql_database.this.properties.query_service_uri
+    database     = var.kql_database_name
+    profile_path = var.routing_profile_path
+    deployer     = abspath("${path.root}/../../shared/scripts/deploy-routing-profile.py")
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    command     = <<-EOT
+      python "$env:ROUTING_DEPLOYER" `
+        --profile "$env:ROUTING_PROFILE_PATH" `
+        --query-uri "$env:KQL_QUERY_URI" `
+        --database "$env:KQL_DATABASE_NAME"
+    EOT
+    environment = {
+      ROUTING_DEPLOYER     = self.input.deployer
+      ROUTING_PROFILE_PATH = self.input.profile_path
+      KQL_QUERY_URI        = self.input.query_uri
+      KQL_DATABASE_NAME    = self.input.database
+    }
+  }
+
+  depends_on = [terraform_data.bronze_model]
+}
+
 resource "fabric_kql_queryset" "realtime" {
   display_name = var.kql_queryset_name
-  description  = "Factory IQ realtime queryset bootstrap for machine performance diagnostics."
+  description  = "Factory IQ realtime queryset for Bronze ingestion diagnostics."
   workspace_id = var.workspace_id
   format       = "Default"
-  depends_on   = [terraform_data.silver_model]
+  depends_on   = [terraform_data.bronze_model, terraform_data.routing_profile]
 
   definition = {
     "RealTimeQueryset.json" = {
@@ -116,10 +164,10 @@ resource "fabric_kql_queryset" "realtime" {
 
 resource "fabric_kql_dashboard" "realtime" {
   display_name = var.kql_dashboard_name
-  description  = "Factory IQ realtime dashboard bootstrap for machine performance verification."
+  description  = "Factory IQ realtime dashboard for Bronze ingestion verification."
   workspace_id = var.workspace_id
   format       = "Default"
-  depends_on   = [terraform_data.silver_model]
+  depends_on   = [terraform_data.bronze_model, terraform_data.routing_profile]
 
   definition = {
     "RealTimeDashboard.json" = {
@@ -151,6 +199,12 @@ variable "kql_queryset_name" {
 
 variable "kql_dashboard_name" {
   type = string
+}
+
+variable "routing_profile_path" {
+  type        = string
+  description = "Optional absolute path to a routes.json profile."
+  default     = ""
 }
 
 output "eventhouse_id" {

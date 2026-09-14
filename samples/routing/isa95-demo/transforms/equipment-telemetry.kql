@@ -1,0 +1,9 @@
+RawTelemetry
+| extend message = todynamic(Payload)
+| where isnotempty(tostring(message.Signal))
+| where tostring(message.Signal) !in ("State", "WorkRequest", "WorkResponse", "MaterialActual", "QualityTest")
+| project
+    Timestamp = todatetime(message.Timestamp),
+    WorkUnitId = tostring(message.WorkUnitId),
+    Signal = tostring(message.Signal),
+    Value = todouble(message.Value)

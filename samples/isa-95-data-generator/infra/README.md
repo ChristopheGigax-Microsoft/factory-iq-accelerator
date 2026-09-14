@@ -8,8 +8,8 @@ Terraform configuration for the demo infrastructure. Provisions all Azure resour
 Azure Function App (.NET 10)
   └─→ Azure IoT Hub S1  (isa95-demo-iothub)
         └─→ Fabric Eventstream  [wired manually — see below]
-              └─→ TelemetryLanding (Bronze KQL)
-                    └─→ Silver tables → Foundry Agents
+              └─→ RawTelemetry (Bronze KQL)
+                    └─→ optional ISA-95 demo routing profile
 ```
 
 ## Resources provisioned
@@ -74,6 +74,13 @@ After deploying, add the IoT Hub as a **Custom Source** in the Fabric Eventstrea
 1. Open your Fabric workspace → Eventstream → **Edit**
 2. **Add source** → **Azure IoT Hub**
 3. IoT Hub: `isa95-demo-iothub` — Consumer group: `$Default`
-4. The messages flow automatically into `TelemetryLanding` via the existing Eventstream mapping
+4. The messages flow automatically into `RawTelemetry` via the existing Eventstream mapping
+
+To create the demo Silver tables, configure the main accelerator deployment
+with:
+
+```hcl
+routing_profile_path = "../../samples/routing/isa95-demo/routes.json"
+```
 
 > The Eventstream Terraform module (`infra/terraform/modules/eventstream`) currently manages the Eventstream item but source wiring is not yet automated via IaC (Fabric API preview limitation). This will be updated when the API stabilises.

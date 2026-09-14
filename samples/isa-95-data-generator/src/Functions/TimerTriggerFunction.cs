@@ -29,7 +29,7 @@ public class TimerTriggerFunction
     /// <summary>
     /// Fast tick every 10 seconds.
     /// Generates Equipment Telemetry signals and Equipment Actual state events.
-    /// Feeds <c>EquipmentTelemetry</c> and <c>EquipmentActual</c> Silver tables via KQL update policies.
+    /// Sends source events through the RawTelemetry Bronze envelope.
     /// </summary>
     [Function(nameof(TelemetryTick))]
     public async Task TelemetryTick([TimerTrigger("*/10 * * * * *")] TimerInfo timer)
@@ -49,8 +49,7 @@ public class TimerTriggerFunction
     /// <summary>
     /// Slow tick every 60 seconds.
     /// Creates/closes work orders and emits material actuals + quality test results.
-    /// Feeds <c>WorkRequest</c>, <c>WorkResponse</c>, <c>MaterialActual</c>,
-    /// <c>QualityTestResult</c> Silver tables via KQL update policies.
+    /// Sends work, material, and quality source events through RawTelemetry.
     /// </summary>
     [Function(nameof(WorkOrderTick))]
     public async Task WorkOrderTick([TimerTrigger("0 */1 * * * *")] TimerInfo timer)

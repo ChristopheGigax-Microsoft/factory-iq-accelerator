@@ -1,0 +1,9 @@
+RawTelemetry
+| extend message = todynamic(Payload), details = todynamic(Payload.Payload)
+| where tostring(message.Signal) == "State"
+| project
+    Timestamp = todatetime(message.Timestamp),
+    WorkUnitId = tostring(message.WorkUnitId),
+    State = tostring(details.State),
+    StateReason = tostring(details.StateReason),
+    OperatorId = tostring(details.OperatorId)

@@ -1,0 +1,17 @@
+RawTelemetry
+| extend message = todynamic(Payload), details = todynamic(Payload.Payload)
+| where tostring(message.Signal) == "QualityTest"
+| project
+    Timestamp = todatetime(message.Timestamp),
+    TestId = tostring(details.TestId),
+    WorkUnitId = tostring(details.WorkUnitId),
+    ResponseId = tostring(details.ResponseId),
+    LotId = tostring(details.LotId),
+    TestSpecificationId = tostring(details.TestSpecificationId),
+    Parameter = tostring(details.Parameter),
+    MeasuredValue = todouble(details.MeasuredValue),
+    LowerLimit = todouble(details.LowerLimit),
+    UpperLimit = todouble(details.UpperLimit),
+    UnitOfMeasure = tostring(details.UnitOfMeasure),
+    Result = tostring(details.Result),
+    Severity = tostring(details.Severity)

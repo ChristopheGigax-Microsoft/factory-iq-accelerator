@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "sourceTable": "RawTelemetry",
+  "routes": [
+    {
+      "name": "equipment_telemetry",
+      "targetTable": "EquipmentTelemetry",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "Timestamp", "type": "datetime" },
+        { "name": "WorkUnitId", "type": "string" },
+        { "name": "Signal", "type": "string" },
+        { "name": "Value", "type": "real" }
+      ],
+      "transformFile": "transforms/equipment-telemetry.kql"
+    },
+    {
+      "name": "equipment_actual",
+      "targetTable": "EquipmentActual",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "Timestamp", "type": "datetime" },
+        { "name": "WorkUnitId", "type": "string" },
+        { "name": "State", "type": "string" },
+        { "name": "StateReason", "type": "string" },
+        { "name": "OperatorId", "type": "string" }
+      ],
+      "transformFile": "transforms/equipment-actual.kql"
+    },
+    {
+      "name": "work_request",
+      "targetTable": "WorkRequest",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "RequestId", "type": "string" },
+        { "name": "WorkCenterId", "type": "string" },
+        { "name": "ProductId", "type": "string" },
+        { "name": "QuantityRequested", "type": "real" },
+        { "name": "UnitOfMeasure", "type": "string" },
+        { "name": "Priority", "type": "int" },
+        { "name": "ScheduledStart", "type": "datetime" },
+        { "name": "ScheduledEnd", "type": "datetime" },
+        { "name": "Status", "type": "string" },
+        { "name": "CreatedAt", "type": "datetime" }
+      ],
+      "transformFile": "transforms/work-request.kql"
+    },
+    {
+      "name": "work_response",
+      "targetTable": "WorkResponse",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "ResponseId", "type": "string" },
+        { "name": "RequestId", "type": "string" },
+        { "name": "WorkCenterId", "type": "string" },
+        { "name": "ActualStart", "type": "datetime" },
+        { "name": "ActualEnd", "type": "datetime" },
+        { "name": "QuantityProduced", "type": "real" },
+        { "name": "QuantityRejected", "type": "real" },
+        { "name": "Status", "type": "string" },
+        { "name": "CompletedAt", "type": "datetime" }
+      ],
+      "transformFile": "transforms/work-response.kql"
+    },
+    {
+      "name": "material_actual",
+      "targetTable": "MaterialActual",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "Timestamp", "type": "datetime" },
+        { "name": "LotId", "type": "string" },
+        { "name": "MaterialDefinitionId", "type": "string" },
+        { "name": "WorkCenterId", "type": "string" },
+        { "name": "RequestId", "type": "string" },
+        { "name": "Direction", "type": "string" },
+        { "name": "Quantity", "type": "real" },
+        { "name": "UnitOfMeasure", "type": "string" }
+      ],
+      "transformFile": "transforms/material-actual.kql"
+    },
+    {
+      "name": "quality_test_result",
+      "targetTable": "QualityTestResult",
+      "enabled": true,
+      "transactional": false,
+      "columns": [
+        { "name": "Timestamp", "type": "datetime" },
+        { "name": "TestId", "type": "string" },
+        { "name": "WorkUnitId", "type": "string" },
+        { "name": "ResponseId", "type": "string" },
+        { "name": "LotId", "type": "string" },
+        { "name": "TestSpecificationId", "type": "string" },
+        { "name": "Parameter", "type": "string" },
+        { "name": "MeasuredValue", "type": "real" },
+        { "name": "LowerLimit", "type": "real" },
+        { "name": "UpperLimit", "type": "real" },
+        { "name": "UnitOfMeasure", "type": "string" },
+        { "name": "Result", "type": "string" },
+        { "name": "Severity", "type": "string" }
+      ],
+      "transformFile": "transforms/quality-test-result.kql"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+RawTelemetry
+| extend message = todynamic(Payload), details = todynamic(Payload.Payload)
+| where tostring(message.Signal) == "WorkRequest"
+| project
+    RequestId = tostring(details.RequestId),
+    WorkCenterId = tostring(details.WorkCenterId),
+    ProductId = tostring(details.ProductId),
+    QuantityRequested = todouble(details.QuantityRequested),
+    UnitOfMeasure = tostring(details.UnitOfMeasure),
+    Priority = toint(details.Priority),
+    ScheduledStart = todatetime(details.ScheduledStart),
+    ScheduledEnd = todatetime(details.ScheduledEnd),
+    Status = tostring(details.Status),
+    CreatedAt = todatetime(details.CreatedAt)

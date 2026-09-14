@@ -58,6 +58,7 @@ locals {
   workspace_id                 = var.workspace_id
   ontology_name                = replace("${local.base_name}_ontology", "-", "_")
   fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
+  routing_profile_path         = trimspace(var.routing_profile_path) != "" ? abspath(var.routing_profile_path) : ""
 }
 
 resource "azurerm_resource_group" "this" {
@@ -66,12 +67,13 @@ resource "azurerm_resource_group" "this" {
 }
 
 module "eventhouse" {
-  source             = "./modules/eventhouse"
-  name               = "${local.base_name}-eh"
-  workspace_id       = local.workspace_id
-  kql_database_name  = "${local.base_name}-kql"
-  kql_queryset_name  = "${local.base_name}-rtqs"
-  kql_dashboard_name = "${local.base_name}-rtd"
+  source               = "./modules/eventhouse"
+  name                 = "${local.base_name}-eh"
+  workspace_id         = local.workspace_id
+  kql_database_name    = "${local.base_name}-kql"
+  kql_queryset_name    = "${local.base_name}-rtqs"
+  kql_dashboard_name   = "${local.base_name}-rtd"
+  routing_profile_path = local.routing_profile_path
 }
 
 module "eventstream" {

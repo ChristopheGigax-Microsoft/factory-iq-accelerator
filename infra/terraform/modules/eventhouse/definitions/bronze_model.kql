@@ -1,0 +1,9 @@
+// Stable Bronze contract. Payload preserves the complete source event.
+.create-merge table RawTelemetry (
+  IngestedAt:datetime,
+  EventTime:datetime,
+  SourceSystem:string,
+  SourceSchema:string,
+  SourceRecordId:string,
+  Payload:dynamic
+)

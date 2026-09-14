@@ -1,0 +1,12 @@
+RawTelemetry
+| extend message = todynamic(Payload), details = todynamic(Payload.Payload)
+| where tostring(message.Signal) == "MaterialActual"
+| project
+    Timestamp = todatetime(message.Timestamp),
+    LotId = tostring(details.LotId),
+    MaterialDefinitionId = tostring(details.MaterialDefinitionId),
+    WorkCenterId = tostring(details.WorkCenterId),
+    RequestId = tostring(details.RequestId),
+    Direction = tostring(details.Direction),
+    Quantity = todouble(details.Quantity),
+    UnitOfMeasure = tostring(details.UnitOfMeasure)

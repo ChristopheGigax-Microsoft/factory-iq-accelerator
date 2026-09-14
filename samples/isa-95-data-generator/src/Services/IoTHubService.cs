@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Isa95DataGenerator.Models;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Extensions.Logging;
 
@@ -7,7 +8,7 @@ namespace Isa95DataGenerator.Services;
 
 public interface IIoTHubService
 {
-    Task SendMessageAsync<T>(T payload, CancellationToken cancellationToken = default);
+    Task SendMessageAsync(TelemetryMessage payload, CancellationToken cancellationToken = default);
 }
 
 public class IoTHubService : IIoTHubService, IAsyncDisposable
@@ -22,9 +23,20 @@ public class IoTHubService : IIoTHubService, IAsyncDisposable
         _logger.LogInformation("IoT Hub device client initialized");
     }
 
-    public async Task SendMessageAsync<T>(T payload, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(
+        TelemetryMessage payload,
+        CancellationToken cancellationToken = default)
     {
-        var json = JsonSerializer.Serialize(payload);
+        var envelope = new RawTelemetryEnvelope
+        {
+            IngestedAt = DateTime.UtcNow,
+            EventTime = payload.Timestamp,
+            SourceSystem = "Isa95DataGenerator",
+            SourceSchema = "isa95-demo.v1",
+            SourceRecordId = Guid.NewGuid().ToString(),
+            Payload = payload
+        };
+        var json = JsonSerializer.Serialize(envelope);
         using var message = new Message(Encoding.UTF8.GetBytes(json))
         {
             ContentType = "application/json",
