@@ -20,4 +20,6 @@ public sealed class QualityAgent(
 
     protected override string Instructions =>
         FactoryAgentProfiles.Quality.CloudInstructions;
+
+    protected override bool UsesWebSearchTool => true;
 }

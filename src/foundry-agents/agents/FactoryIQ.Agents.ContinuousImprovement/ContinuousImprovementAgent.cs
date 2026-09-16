@@ -20,4 +20,6 @@ public sealed class ContinuousImprovementAgent(
 
     protected override string Instructions =>
         FactoryAgentProfiles.ContinuousImprovement.CloudInstructions;
+
+    protected override bool UsesWebSearchTool => true;
 }

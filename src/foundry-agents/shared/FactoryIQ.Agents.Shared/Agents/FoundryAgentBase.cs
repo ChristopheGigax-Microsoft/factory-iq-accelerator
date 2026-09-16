@@ -48,6 +48,7 @@ public abstract class FoundryAgentBase : IFactoryAgent
     protected virtual bool UsesFoundryIqKnowledgeBase => true;
     protected virtual bool UsesFabricDataAgentTool => true;
     protected virtual bool UsesWorkIqTool => false;
+    protected virtual bool UsesWebSearchTool => false;
 
     public async Task RegisterAsync(CancellationToken ct = default)
     {
@@ -146,6 +147,10 @@ public abstract class FoundryAgentBase : IFactoryAgent
         {
             definition.Tools.Add(BuildWorkIqTool(workIqProjectConnectionId));
         }
+        if (UsesWebSearchTool)
+        {
+            definition.Tools.Add(ResponseTool.CreateWebSearchTool());
+        }
 
         return new ProjectsAgentVersionCreationOptions(definition)
         {
@@ -168,7 +173,8 @@ public abstract class FoundryAgentBase : IFactoryAgent
             && string.Equals(definition.Instructions, Instructions, StringComparison.Ordinal)
             && HasExpectedKnowledgeBaseTool(definition)
             && HasExpectedFabricDataAgentTool(definition, fabricDataAgentProjectConnectionId)
-            && HasExpectedWorkIqTool(definition, workIqProjectConnectionId);
+            && HasExpectedWorkIqTool(definition, workIqProjectConnectionId)
+            && HasExpectedWebSearchTool(definition);
     }
 
     private bool HasExpectedKnowledgeBaseTool(DeclarativeAgentDefinition definition)
@@ -271,6 +277,11 @@ public abstract class FoundryAgentBase : IFactoryAgent
         tool.Patch.Set("$.project_connection_id"u8, workIqProjectConnectionId);
 
         return tool;
+    }
+
+    private bool HasExpectedWebSearchTool(DeclarativeAgentDefinition definition)
+    {
+        return !UsesWebSearchTool || definition.Tools.OfType<WebSearchTool>().Any();
     }
 
     private async Task<string> ResolveProjectConnectionIdAsync(string connectionNameOrId, CancellationToken ct)
