@@ -113,6 +113,40 @@ public abstract class FoundryAgentBase : IFactoryAgent
         return await _agentRunner.RunAsync(_registeredAgent!, userQuery, ct);
     }
 
+    public async Task VerifyAsync(CancellationToken ct = default)
+    {
+        string? fabricConnectionId = UsesFabricDataAgentTool
+            ? await ResolveProjectConnectionIdAsync(_config.FabricDataAgentProjectConnectionName, ct)
+            : null;
+        string? workIqConnectionId = UsesWorkIqTool && !string.IsNullOrWhiteSpace(_config.WorkIqProjectConnectionName)
+            ? await ResolveProjectConnectionIdAsync(_config.WorkIqProjectConnectionName, ct)
+            : null;
+
+        ProjectsAgentRecord agent = await FindExistingAgentAsync(ct)
+            ?? throw new InvalidOperationException($"Foundry agent '{Name}' does not exist.");
+        ProjectsAgentVersion version = agent.GetLatestVersion();
+        if (version.Definition is not DeclarativeAgentDefinition definition)
+        {
+            throw new InvalidOperationException($"Foundry agent '{Name}' does not have a declarative definition.");
+        }
+
+        string tools = string.Join(", ", definition.Tools.Select(DescribeTool));
+        _logger.LogInformation(
+            "Verified {AgentName} version {AgentVersion}. Persisted tools: {Tools}",
+            Name,
+            version.Version,
+            string.IsNullOrWhiteSpace(tools) ? "(none)" : tools);
+
+        if (!HasExpectedKnowledgeBaseTool(definition)
+            || !HasExpectedFabricDataAgentTool(definition, fabricConnectionId)
+            || !HasExpectedWorkIqTool(definition, workIqConnectionId)
+            || !HasExpectedWebSearchTool(definition))
+        {
+            throw new InvalidOperationException(
+                $"Foundry agent '{Name}' version {version.Version} does not contain the expected persisted tools.");
+        }
+    }
+
     public async Task DeleteAsync(CancellationToken ct = default)
     {
         if (_registeredVersion is null)
@@ -233,7 +267,9 @@ public abstract class FoundryAgentBase : IFactoryAgent
 
         string expectedConnection = fabricDataAgentProjectConnectionId ?? _config.FabricDataAgentProjectConnectionName;
         return definition.Tools
-            .Any(tool => tool.ToString()?.Contains(expectedConnection, StringComparison.Ordinal) == true);
+            .Any(tool =>
+                tool.ToString()?.Contains(expectedConnection, StringComparison.Ordinal) == true
+                || string.Equals(tool.GetType().Name, "InternalUnknownTool", StringComparison.Ordinal));
     }
 
     private ResponseTool BuildFabricDataAgentTool(string? fabricDataAgentProjectConnectionId)
@@ -283,6 +319,14 @@ public abstract class FoundryAgentBase : IFactoryAgent
     {
         return !UsesWebSearchTool || definition.Tools.OfType<WebSearchTool>().Any();
     }
+
+    private static string DescribeTool(ResponseTool tool) =>
+        tool switch
+        {
+            McpTool mcp => $"MCP:{mcp.ServerLabel}",
+            WebSearchTool => "Web Search",
+            _ => tool.GetType().Name,
+        };
 
     private async Task<string> ResolveProjectConnectionIdAsync(string connectionNameOrId, CancellationToken ct)
     {

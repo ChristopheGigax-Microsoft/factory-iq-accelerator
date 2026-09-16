@@ -53,17 +53,92 @@ moved {
   to   = azapi_resource.search_connection
 }
 
+moved {
+  from = azapi_resource.search_connection
+  to   = azapi_resource.search_connection[0]
+}
+
+moved {
+  from = azapi_resource.foundry_iq_kb_connection
+  to   = azapi_resource.foundry_iq_kb_connection[0]
+}
+
+moved {
+  from = azapi_resource.fabric_iq_data_agent_connection
+  to   = azapi_resource.fabric_iq_data_agent_connection[0]
+}
+
+moved {
+  from = module.storage_account
+  to   = module.storage_account[0]
+}
+
+moved {
+  from = module.ai_search
+  to   = module.ai_search[0]
+}
+
+moved {
+  from = module.ai_foundry
+  to   = module.ai_foundry[0]
+}
+
+moved {
+  from = module.rbac
+  to   = module.rbac[0]
+}
+
 locals {
   base_name                    = "fiq-${var.plant_code}-${var.environment}"
-  workspace_id                 = var.workspace_id
+  capacity_name                = replace("${local.base_name}-cap", "-", "")
+  workspace_id                 = var.create_fabric_workspace ? module.workspace[0].workspace_id : trimspace(var.workspace_id)
   ontology_name                = replace("${local.base_name}_ontology", "-", "_")
-  fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${var.fabric_data_agent_id}/agent"
+  fabric_data_agent_id         = trimspace(var.fabric_data_agent_id) != "" ? trimspace(var.fabric_data_agent_id) : module.data_agent.data_agent_id
+  fabric_data_agent_mcp_target = trimspace(var.fabric_data_agent_mcp_target) != "" ? trimspace(var.fabric_data_agent_mcp_target) : "https://api.fabric.microsoft.com/v1/mcp/workspaces/${local.workspace_id}/dataagents/${local.fabric_data_agent_id}/agent"
   routing_profile_path         = trimspace(var.routing_profile_path) != "" ? abspath(var.routing_profile_path) : ""
+}
+
+resource "terraform_data" "validate_configuration" {
+  lifecycle {
+    precondition {
+      condition     = var.create_fabric_workspace || trimspace(var.workspace_id) != ""
+      error_message = "workspace_id is required when create_fabric_workspace is false."
+    }
+
+    precondition {
+      condition     = !var.create_fabric_workspace || length(var.capacity_admin_members) > 0
+      error_message = "capacity_admin_members must contain at least one identity when create_fabric_workspace is true."
+    }
+
+    precondition {
+      condition     = var.enable_foundry || !var.enable_work_iq_connection
+      error_message = "enable_work_iq_connection requires enable_foundry to be true."
+    }
+  }
 }
 
 resource "azurerm_resource_group" "this" {
   name     = var.resource_group
   location = var.region
+}
+
+module "capacity" {
+  source = "./modules/capacity"
+  count  = var.create_fabric_workspace ? 1 : 0
+
+  name              = local.capacity_name
+  location          = var.region
+  sku               = var.capacity_sku
+  resource_group_id = azurerm_resource_group.this.id
+  admin_members     = var.capacity_admin_members
+}
+
+module "workspace" {
+  source = "./modules/workspace"
+  count  = var.create_fabric_workspace ? 1 : 0
+
+  name        = "${local.base_name}-ws"
+  capacity_id = module.capacity[0].capacity_id
 }
 
 module "eventhouse" {
@@ -106,6 +181,7 @@ module "ontology" {
 
 module "storage_account" {
   source              = "./modules/storage_account"
+  count               = var.enable_foundry ? 1 : 0
   name                = replace("fiq${var.plant_code}${var.environment}sa", "-", "")
   location            = var.region
   resource_group_name = azurerm_resource_group.this.name
@@ -113,48 +189,58 @@ module "storage_account" {
 
 module "ai_search" {
   source                    = "./modules/ai_search"
+  count                     = var.enable_foundry ? 1 : 0
   name                      = "${local.base_name}-search"
   location                  = var.region
   resource_group_name       = azurerm_resource_group.this.name
   knowledge_source_name     = "${local.base_name}-blob-ks"
   knowledge_base_name       = "${local.base_name}-kb"
-  storage_connection_string = module.storage_account.primary_connection_string
-  foundry_endpoint          = module.ai_foundry.foundry_endpoint
-  embedding_deployment_name = module.ai_foundry.embedding_deployment_name
-  model_deployment_name     = module.ai_foundry.model_deployment_name
+  storage_connection_string = module.storage_account[0].primary_connection_string
+  foundry_endpoint          = module.ai_foundry[0].foundry_endpoint
+  embedding_deployment_name = module.ai_foundry[0].embedding_deployment_name
+  model_deployment_name     = module.ai_foundry[0].model_deployment_name
 }
 
 module "ai_foundry" {
   source              = "./modules/ai_foundry"
+  count               = var.enable_foundry ? 1 : 0
   foundry_name        = "${local.base_name}-ai-foundry"
   project_name        = "${local.base_name}-ai-project"
   location            = var.region
   resource_group_name = azurerm_resource_group.this.name
   plant_code          = var.plant_code
+
+  model_deployment_capacity     = var.model_deployment_capacity
+  embedding_deployment_capacity = var.embedding_deployment_capacity
 }
 
 module "rbac" {
+  count                  = var.enable_foundry ? 1 : 0
   source                 = "./modules/rbac"
-  foundry_principal_id   = module.ai_foundry.foundry_principal_id
-  project_principal_id   = module.ai_foundry.project_principal_id
-  foundry_resource_id    = module.ai_foundry.foundry_id
-  ai_search_id           = module.ai_search.id
-  ai_search_principal_id = module.ai_search.principal_id
-  storage_account_id     = module.storage_account.id
+  foundry_principal_id   = module.ai_foundry[0].foundry_principal_id
+  project_principal_id   = module.ai_foundry[0].project_principal_id
+  foundry_resource_id    = module.ai_foundry[0].foundry_id
+  foundry_project_id     = module.ai_foundry[0].project_id
+  ai_search_id           = module.ai_search[0].id
+  ai_search_principal_id = module.ai_search[0].principal_id
+  storage_account_id     = module.storage_account[0].id
+
+  agent_deployer_principal_id = var.agent_deployer_principal_id
 }
 
 module "workiq_app" {
   source = "./modules/workiq_app"
-  count  = var.enable_work_iq_connection ? 1 : 0
+  count  = var.enable_foundry && var.enable_work_iq_connection ? 1 : 0
 }
 
 # ---------------------------------------------------------------------------
 # Connections (AI Search) — on the Foundry resource, not on a Hub
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "search_connection" {
+  count                     = var.enable_foundry ? 1 : 0
   type                      = "Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview"
   name                      = "ai-search-connection"
-  parent_id                 = module.ai_foundry.foundry_id
+  parent_id                 = module.ai_foundry[0].foundry_id
   schema_validation_enabled = false
 
   body = {
@@ -162,10 +248,10 @@ resource "azapi_resource" "search_connection" {
       category      = "CognitiveSearch"
       authType      = "AAD"
       isSharedToAll = true
-      target        = module.ai_search.endpoint
+      target        = module.ai_search[0].endpoint
       metadata = {
         ApiType    = "Azure"
-        ResourceId = module.ai_search.id
+        ResourceId = module.ai_search[0].id
       }
     }
   }
@@ -176,9 +262,10 @@ resource "azapi_resource" "search_connection" {
 # Foundry project so agents can use knowledge_base_retrieve.
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "foundry_iq_kb_connection" {
+  count                     = var.enable_foundry ? 1 : 0
   type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
   name                      = "foundry-iq-kb-connection"
-  parent_id                 = module.ai_foundry.project_id
+  parent_id                 = module.ai_foundry[0].project_id
   schema_validation_enabled = false
 
   body = {
@@ -186,7 +273,7 @@ resource "azapi_resource" "foundry_iq_kb_connection" {
       authType      = "ProjectManagedIdentity"
       category      = "RemoteTool"
       isSharedToAll = true
-      target        = "${module.ai_search.endpoint}/knowledgebases/${module.ai_search.knowledge_base_name}/mcp?api-version=2026-05-01-preview"
+      target        = "${module.ai_search[0].endpoint}/knowledgebases/${module.ai_search[0].knowledge_base_name}/mcp?api-version=2026-05-01-preview"
       audience      = "https://search.azure.com/"
       metadata = {
         ApiType = "Azure"
@@ -200,9 +287,10 @@ resource "azapi_resource" "foundry_iq_kb_connection" {
 # Data Agent MCP endpoint so declarative agents can use fabric_iq_preview.
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "fabric_iq_data_agent_connection" {
+  count                     = var.enable_foundry ? 1 : 0
   type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
   name                      = "fabric-iq-data-agent-connection"
-  parent_id                 = module.ai_foundry.project_id
+  parent_id                 = module.ai_foundry[0].project_id
   schema_validation_enabled = false
 
   body = {
@@ -233,10 +321,10 @@ resource "azapi_resource" "fabric_iq_data_agent_connection" {
 # Only provisioned when enable_work_iq_connection = true.
 # ---------------------------------------------------------------------------
 resource "azapi_resource" "work_iq_connection" {
-  count                     = var.enable_work_iq_connection ? 1 : 0
+  count                     = var.enable_foundry && var.enable_work_iq_connection ? 1 : 0
   type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview"
   name                      = "work-iq-connection"
-  parent_id                 = module.ai_foundry.project_id
+  parent_id                 = module.ai_foundry[0].project_id
   schema_validation_enabled = false
 
   body = {
@@ -286,7 +374,7 @@ resource "azapi_resource" "work_iq_connection" {
 # update` call is idempotent (same redirect URI every time).
 # ---------------------------------------------------------------------------
 resource "null_resource" "work_iq_redirect_uri" {
-  count = var.enable_work_iq_connection ? 1 : 0
+  count = var.enable_foundry && var.enable_work_iq_connection ? 1 : 0
 
   triggers = {
     application_client_id = module.workiq_app[0].client_id

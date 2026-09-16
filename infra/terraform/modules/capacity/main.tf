@@ -36,6 +36,11 @@ data "fabric_capacity" "this" {
 
 variable "name" {
   type = string
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9]*$", var.name))
+    error_message = "Fabric capacity name must start with a lowercase letter and contain lowercase letters and numbers only."
+  }
 }
 
 variable "location" {

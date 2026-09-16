@@ -6,6 +6,7 @@ output "connection_contract" {
     resourceGroup                      = var.resource_group
     region                             = var.region
     workspaceId                        = local.workspace_id
+    workspaceCreated                   = var.create_fabric_workspace
     eventhouseId                       = module.eventhouse.eventhouse_id
     kqlDatabase                        = module.eventhouse.kql_database_name
     rawTelemetryTable                  = "RawTelemetry"
@@ -13,17 +14,19 @@ output "connection_contract" {
     dataAgentId                        = module.data_agent.data_agent_id
     fabricOntologyId                   = module.ontology.ontology_id
     fabricOntologyName                 = module.ontology.ontology_name
-    foundryEndpoint                    = module.ai_foundry.foundry_endpoint
-    foundryProjectId                   = module.ai_foundry.project_id
-    foundryIqProjectConnectionName     = azapi_resource.foundry_iq_kb_connection.name
-    foundryFabricProjectConnectionName = azapi_resource.fabric_iq_data_agent_connection.name
+    deploymentScope                    = var.enable_foundry ? "FabricAndFoundry" : "FabricOnly"
+    foundryEndpoint                    = var.enable_foundry ? module.ai_foundry[0].foundry_endpoint : null
+    foundryProjectEndpoint             = var.enable_foundry ? module.ai_foundry[0].project_endpoint : null
+    foundryProjectId                   = var.enable_foundry ? module.ai_foundry[0].project_id : null
+    foundryIqProjectConnectionName     = var.enable_foundry ? azapi_resource.foundry_iq_kb_connection[0].name : null
+    foundryFabricProjectConnectionName = var.enable_foundry ? azapi_resource.fabric_iq_data_agent_connection[0].name : null
     foundryWorkIqProjectConnectionName = length(azapi_resource.work_iq_connection) > 0 ? azapi_resource.work_iq_connection[0].name : ""
-    aiSearchEndpoint                   = module.ai_search.endpoint
-    foundryIqKnowledgeSourceName       = module.ai_search.knowledge_source_name
-    foundryIqKnowledgeBaseName         = module.ai_search.knowledge_base_name
-    modelDeploymentName                = module.ai_foundry.model_deployment_name
-    embeddingDeploymentName            = module.ai_foundry.embedding_deployment_name
-    storageAccountEndpoint             = module.storage_account.primary_blob_endpoint
+    aiSearchEndpoint                   = var.enable_foundry ? module.ai_search[0].endpoint : null
+    foundryIqKnowledgeSourceName       = var.enable_foundry ? module.ai_search[0].knowledge_source_name : null
+    foundryIqKnowledgeBaseName         = var.enable_foundry ? module.ai_search[0].knowledge_base_name : null
+    modelDeploymentName                = var.enable_foundry ? module.ai_foundry[0].model_deployment_name : null
+    embeddingDeploymentName            = var.enable_foundry ? module.ai_foundry[0].embedding_deployment_name : null
+    storageAccountEndpoint             = var.enable_foundry ? module.storage_account[0].primary_blob_endpoint : null
     generatedAt                        = timestamp()
     schemaVersion                      = "3.0"
   }

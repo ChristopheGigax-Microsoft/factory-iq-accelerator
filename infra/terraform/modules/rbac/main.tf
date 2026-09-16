@@ -53,3 +53,13 @@ resource "azurerm_role_assignment" "search_foundry_cognitive_user" {
   principal_id         = var.ai_search_principal_id
   principal_type       = "ServicePrincipal"
 }
+
+# The walkthrough uses the signed-in user to publish prompt-agent versions.
+resource "azurerm_role_assignment" "agent_deployer" {
+  count = trimspace(var.agent_deployer_principal_id) != "" ? 1 : 0
+
+  scope                = var.foundry_project_id
+  role_definition_name = "Foundry Project Manager"
+  principal_id         = var.agent_deployer_principal_id
+  principal_type       = "User"
+}

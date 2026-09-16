@@ -46,7 +46,7 @@ resource "terraform_data" "blob_knowledge_source" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     environment = {
       SEARCH_ENDPOINT           = local.search_endpoint
       KS_NAME                   = var.knowledge_source_name
@@ -93,7 +93,7 @@ resource "terraform_data" "blob_knowledge_source" {
 
   provisioner "local-exec" {
     when        = destroy
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     environment = {
       SEARCH_ENDPOINT = self.input.search_endpoint
       KS_NAME         = self.input.name
@@ -120,7 +120,7 @@ resource "terraform_data" "knowledge_base" {
   depends_on = [terraform_data.blob_knowledge_source]
 
   provisioner "local-exec" {
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     environment = {
       SEARCH_ENDPOINT       = local.search_endpoint
       KB_NAME               = var.knowledge_base_name
@@ -163,7 +163,7 @@ resource "terraform_data" "knowledge_base" {
 
   provisioner "local-exec" {
     when        = destroy
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     environment = {
       SEARCH_ENDPOINT = self.input.search_endpoint
       KB_NAME         = self.input.name

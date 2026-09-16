@@ -20,6 +20,18 @@ variable "embedding_deployment_name" {
   default     = "text-embedding-3-large"
 }
 
+variable "model_deployment_capacity" {
+  type        = number
+  description = "Capacity assigned to the chat model deployment"
+  default     = 30
+}
+
+variable "embedding_deployment_capacity" {
+  type        = number
+  description = "Capacity assigned to the embedding model deployment"
+  default     = 30
+}
+
 variable "location" {
   type        = string
   description = "Azure region"

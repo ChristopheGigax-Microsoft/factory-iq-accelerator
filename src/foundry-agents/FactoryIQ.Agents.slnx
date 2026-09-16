@@ -5,4 +5,5 @@
   <Project Path="agents\FactoryIQ.Agents.Quality\FactoryIQ.Agents.Quality.csproj" />
   <Project Path="agents\FactoryIQ.Agents.PlantManager\FactoryIQ.Agents.PlantManager.csproj" />
   <Project Path="agents\FactoryIQ.Agents.ContinuousImprovement\FactoryIQ.Agents.ContinuousImprovement.csproj" />
+  <Project Path="tools\FactoryIQ.Agents.RegisterAll\FactoryIQ.Agents.RegisterAll.csproj" />
 </Solution>

@@ -20,7 +20,21 @@ resource "fabric_data_agent" "this" {
       "Files/Config/draft/stage_config.json" = {
         source = "${path.module}/definitions/stage_config.json.tmpl"
       }
+      "Files/Config/published/stage_config.json" = {
+        source = "${path.module}/definitions/stage_config.json.tmpl"
+      }
+      "Files/Config/publish_info.json" = {
+        source = "${path.module}/definitions/publish_info.json.tmpl"
+      }
       "Files/Config/draft/kusto-${var.kql_database_name}/datasource.json" = {
+        source = "${path.module}/definitions/datasource_kusto.json.tmpl"
+        tokens = {
+          "KQL_DATABASE_ID"   = var.kql_database_id
+          "WORKSPACE_ID"      = var.workspace_id
+          "KQL_DATABASE_NAME" = var.kql_database_name
+        }
+      }
+      "Files/Config/published/kusto-${var.kql_database_name}/datasource.json" = {
         source = "${path.module}/definitions/datasource_kusto.json.tmpl"
         tokens = {
           "KQL_DATABASE_ID"   = var.kql_database_id
@@ -31,6 +45,14 @@ resource "fabric_data_agent" "this" {
     },
     var.ontology_id != "" && var.ontology_name != "" ? {
       "Files/Config/draft/ontology-${var.ontology_name}/datasource.json" = {
+        source = "${path.module}/definitions/datasource_ontology.json.tmpl"
+        tokens = {
+          "ONTOLOGY_ID"   = var.ontology_id
+          "WORKSPACE_ID"  = var.workspace_id
+          "ONTOLOGY_NAME" = var.ontology_name
+        }
+      }
+      "Files/Config/published/ontology-${var.ontology_name}/datasource.json" = {
         source = "${path.module}/definitions/datasource_ontology.json.tmpl"
         tokens = {
           "ONTOLOGY_ID"   = var.ontology_id

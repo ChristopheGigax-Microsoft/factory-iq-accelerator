@@ -46,3 +46,6 @@ Thumbs.db
 # Terraform plan files
 tfplan
 *.tfplan
+
+# Local deployment walkthrough working directory (tfvars, tfplan, summaries)
+.azure/

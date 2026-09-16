@@ -86,15 +86,37 @@ curl -X POST "<fabric_data_agent_mcp_target>" \
 
 If `tools/list` fails with HTTP 404, publish/re-publish the Fabric Data Agent before retesting Foundry agents.
 
+After registering all agents, verify the tool definitions persisted in Foundry:
+
+```bash
+dotnet run --project tools/FactoryIQ.Agents.RegisterAll -- --verify-only
+```
+
+Work IQ is intentionally attached to the Maintenance and Plant Manager agents.
+The verifier fails if an expected tool is missing.
+
 ### Run an Agent
 
 ```bash
+# Register only; exits after creating/reusing the Foundry agent and does not start the REPL
+dotnet run --project agents/FactoryIQ.Agents.Operations -- --register-only
+
 # One-shot query
 dotnet run --project agents/FactoryIQ.Agents.Operations -- "What is the current OEE for line 1?"
 
 # Interactive REPL
 dotnet run --project agents/FactoryIQ.Agents.Maintenance
 ```
+
+### Register All Foundry Agents
+
+To register or update all five persistent Foundry agents in one non-interactive command:
+
+```bash
+dotnet run --project tools/FactoryIQ.Agents.RegisterAll -- --register-only
+```
+
+The command loads the same environment variables as the individual agent projects, including `PROJECT_ENDPOINT` / `AZURE_AI_PROJECT_ENDPOINT`, `MODEL_DEPLOYMENT_NAME`, `AI_SEARCH_ENDPOINT`, `FOUNDRY_IQ_KNOWLEDGE_BASE_NAME`, `FOUNDRY_IQ_PROJECT_CONNECTION_NAME`, `FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME`, optional `FOUNDRY_WORK_IQ_PROJECT_CONNECTION_NAME`, and `AZURE_TENANT_ID`. It only supports `AI_RUNTIME=cloud` and never sends a business query.
 
 ### Build All
 

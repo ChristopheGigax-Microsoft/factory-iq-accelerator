@@ -14,6 +14,10 @@ output "project_id" {
   value = azapi_resource.project.id
 }
 
+output "project_endpoint" {
+  value = "https://${var.foundry_name}.services.ai.azure.com/api/projects/${var.project_name}"
+}
+
 output "project_principal_id" {
   value = azapi_resource.project.output.identity.principalId
 }

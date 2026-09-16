@@ -24,6 +24,15 @@ variable "storage_account_id" {
 }
 
 variable "foundry_resource_id" {
+  type = string
+}
+
+variable "foundry_project_id" {
+  type = string
+}
+
+variable "agent_deployer_principal_id" {
   type        = string
+  default     = ""
   description = "Resource ID of the Foundry parent resource"
 }

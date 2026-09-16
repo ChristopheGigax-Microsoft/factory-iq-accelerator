@@ -8,6 +8,8 @@ public interface IFactoryAgent
 
     Task RegisterAsync(CancellationToken ct = default);
 
+    Task VerifyAsync(CancellationToken ct = default);
+
     Task<string> RunAsync(string userQuery, CancellationToken ct = default);
 
     Task DeleteAsync(CancellationToken ct = default);

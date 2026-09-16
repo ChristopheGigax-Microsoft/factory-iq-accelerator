@@ -5,6 +5,8 @@ namespace FactoryIQ.Agents.Shared.Agents;
 
 public static class AgentConsoleHost
 {
+    public const string RegisterOnlyArgument = "--register-only";
+
     public static async Task RunAsync(
         IFactoryAgent agent,
         FoundryConfig config,
@@ -12,7 +14,14 @@ public static class AgentConsoleHost
         string[] args,
         CancellationToken ct = default)
     {
+        bool registerOnly = IsRegisterOnly(args);
+
         await agent.RegisterAsync(ct);
+        if (registerOnly)
+        {
+            logger.LogInformation("Registered {AgentName}; exiting without starting interactive mode.", agent.Name);
+            return;
+        }
 
         try
         {
@@ -68,5 +77,26 @@ public static class AgentConsoleHost
                 logger.LogInformation("Leaving Foundry agent {AgentName} registered in Foundry Agent Service.", agent.Name);
             }
         }
+    }
+
+    public static bool IsRegisterOnly(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            return false;
+        }
+
+        bool hasRegisterOnly = args.Any(arg => string.Equals(arg, RegisterOnlyArgument, StringComparison.OrdinalIgnoreCase));
+        if (!hasRegisterOnly)
+        {
+            return false;
+        }
+
+        if (args.Length > 1)
+        {
+            throw new InvalidOperationException($"{RegisterOnlyArgument} cannot be combined with a query.");
+        }
+
+        return true;
     }
 }

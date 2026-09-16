@@ -36,6 +36,8 @@ resource "azurerm_cognitive_deployment" "gpt4o" {
   name                 = var.model_deployment_name
   cognitive_account_id = azurerm_cognitive_account.foundry.id
 
+  depends_on = [azapi_resource.project]
+
   model {
     format  = "OpenAI"
     name    = "gpt-4o"
@@ -44,7 +46,7 @@ resource "azurerm_cognitive_deployment" "gpt4o" {
 
   sku {
     name     = "GlobalStandard"
-    capacity = 30
+    capacity = var.model_deployment_capacity
   }
 }
 
@@ -55,6 +57,8 @@ resource "azurerm_cognitive_deployment" "embedding" {
   name                 = var.embedding_deployment_name
   cognitive_account_id = azurerm_cognitive_account.foundry.id
 
+  depends_on = [azurerm_cognitive_deployment.gpt4o]
+
   model {
     format  = "OpenAI"
     name    = "text-embedding-3-large"
@@ -63,7 +67,7 @@ resource "azurerm_cognitive_deployment" "embedding" {
 
   sku {
     name     = "Standard"
-    capacity = 30
+    capacity = var.embedding_deployment_capacity
   }
 }
 
@@ -88,5 +92,16 @@ resource "azapi_resource" "project" {
       displayName = "Factory IQ Agents"
       description = "Manufacturing agents for plant ${var.plant_code}"
     }
+  }
+
+  retry = {
+    error_message_regex  = ["RequestConflict", "Another operation is in progress"]
+    interval_seconds     = 10
+    max_interval_seconds = 60
+  }
+
+  timeouts {
+    create = "15m"
+    update = "15m"
   }
 }

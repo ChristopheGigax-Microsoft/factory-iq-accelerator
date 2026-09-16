@@ -51,7 +51,7 @@ resource "terraform_data" "bronze_model" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     environment = {
       KQL_QUERY_URI      = self.input.query_uri
       KQL_DATABASE_NAME  = self.input.database
@@ -126,7 +126,7 @@ resource "terraform_data" "routing_profile" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["PowerShell", "-NoProfile", "-NonInteractive", "-Command"]
+    interpreter = ["pwsh", "-NoProfile", "-NonInteractive", "-Command"]
     command     = <<-EOT
       python "$env:ROUTING_DEPLOYER" `
         --profile "$env:ROUTING_PROFILE_PATH" `

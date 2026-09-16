@@ -21,6 +21,9 @@ public sealed class LocalFactoryAgent(
         return modelRuntime.EnsureReadyAsync(ct);
     }
 
+    public Task VerifyAsync(CancellationToken ct = default) =>
+        modelRuntime.EnsureReadyAsync(ct);
+
     public async Task<string> RunAsync(string userQuery, CancellationToken ct = default)
     {
         string opcUaContext = opcUaMachineDataTool is null

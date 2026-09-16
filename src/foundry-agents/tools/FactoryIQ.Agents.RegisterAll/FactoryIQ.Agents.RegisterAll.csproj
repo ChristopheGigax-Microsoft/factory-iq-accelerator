@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>FactoryIQ.Agents.RegisterAll</RootNamespace>
+    <NoWarn>$(NoWarn);CA2252</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\agents\FactoryIQ.Agents.ContinuousImprovement\FactoryIQ.Agents.ContinuousImprovement.csproj" />
+    <ProjectReference Include="..\..\agents\FactoryIQ.Agents.Maintenance\FactoryIQ.Agents.Maintenance.csproj" />
+    <ProjectReference Include="..\..\agents\FactoryIQ.Agents.Operations\FactoryIQ.Agents.Operations.csproj" />
+    <ProjectReference Include="..\..\agents\FactoryIQ.Agents.PlantManager\FactoryIQ.Agents.PlantManager.csproj" />
+    <ProjectReference Include="..\..\agents\FactoryIQ.Agents.Quality\FactoryIQ.Agents.Quality.csproj" />
+    <ProjectReference Include="..\..\shared\FactoryIQ.Agents.Shared\FactoryIQ.Agents.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

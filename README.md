@@ -125,31 +125,37 @@ declares target tables and KQL update policies. See
 
 ### 1. Prerequisites
 
+- PowerShell 7 (`pwsh`)
 - Azure CLI authenticated (`az login`)
-- Owner access on target subscription
+- Owner access on the target subscription, or Contributor plus permission to create role assignments
 - .NET 10 SDK (for Foundry agents)
 - Python 3.11+ (for ISA-95 model scripts)
 - Terraform ≥ 1.6
 
-### 2. Set context
+### 2. Run the deployment walkthrough
 
-```bash
-export PLANT_CODE="plant1"
-export ENVIRONMENT="dev"
-export REGION="westeurope"
-export RESOURCE_GROUP="rg-fiq-${PLANT_CODE}-${ENVIRONMENT}"
+```powershell
+pwsh ./scripts/deploy.ps1
 ```
 
-### 3. Deploy infrastructure
+The walkthrough:
 
-```bash
-# Terraform path
-terraform -chdir=infra/terraform init
-terraform -chdir=infra/terraform apply -var-file=environments/dev.tfvars -auto-approve
-terraform -chdir=infra/terraform output -json connection_contract > connection.json
-```
+- offers **Fabric only** or **Fabric + Foundry**; Foundry always includes the
+  required Azure AI models, AI Search, Storage, RBAC, and project connections;
+- optionally registers the five manufacturing agents after Foundry;
+- lists the permissions and variables required for the selected path;
+- asks for each variable individually and validates it immediately;
+- reports permissions as `OK`, `MISSING`, or `NOT VERIFIABLE`;
+- runs Terraform only after the preflight and a final explicit confirmation.
 
-### 4. (Optional) Deploy ISA-95 model
+The walkthrough always creates and summarizes a Terraform plan first. It then
+asks whether to apply that exact saved plan. Answering no exits without
+deploying anything.
+
+Generated `.tfvars` and plan files are stored under `.azure/` and ignored by
+Git. The successful deployment exports the stable `connection.json` contract.
+
+### 3. (Optional) Deploy ISA-95 model
 
 Skip this step if you only want to validate infrastructure + agent wiring. Run it when you want the ISA-95 schema/hierarchy baseline deployed to Fabric.
 
@@ -161,7 +167,7 @@ python shared/scripts/deploy-model.py \
   --hierarchy-config ./shared/isa95-model/config/plant-hierarchy.yaml
 ```
 
-### 5. Run an agent
+### 4. Run an agent
 
 ```bash
 export PROJECT_ENDPOINT="<from connection.json: foundryProjectEndpoint>"
@@ -170,6 +176,12 @@ export FOUNDRY_FABRIC_DATA_AGENT_PROJECT_CONNECTION_NAME="fabric-iq-data-agent-c
 dotnet run --project src/foundry-agents/agents/FactoryIQ.Agents.Maintenance \
   -- "Show me the top 5 open alarms for line 1"
 ```
+
+### Manual Terraform path
+
+The walkthrough is the recommended one-shot experience. For advanced
+troubleshooting or direct Terraform operation, see
+[`infra/terraform/README.md`](infra/terraform/README.md).
 
 <!-- PLACEHOLDER: Quick start terminal recording -->
 <!-- Image: docs/assets/quickstart-terminal.gif or .png -->
